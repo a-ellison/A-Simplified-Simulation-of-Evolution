@@ -1,12 +1,9 @@
-def create_animal(animal1, animal2):
-    pass
-
 
 class Animal(object):
-    def __init__(self, speed, color, DNA=None):
+    def __init__(self, start_x, start_y, DNA, color, speed):
+        self.x = start_x
+        self.y = start_y
         self.DNA = DNA
         self.color = color
         self.speed = speed
-        if DNA is None:
-            pass
 
