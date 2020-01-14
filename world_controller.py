@@ -1,26 +1,44 @@
 from world import World
 
 
-class World_Controller(object):
-    def __init__(self, canvas, canvas_length, world=None):
-        self.cv = canvas
+class WorldController(object):
+    def __init__(self, canvas, canvas_length, world_data=None):
+        self.canvas = canvas
         self.canvas_length = canvas_length
-        self.animal_diameter = 5
-        if world is None:
+        self.ANIMAL_DIAMETER = 5
+        if world_data is None:
             self.world = World(self.canvas_length)
         else:
-            # load world
-            pass
+            self.world = self.load_world(world_data)
 
-    def draw_animals(self):
-        self.cv.delete('all')
-        for animal in self.world.all_animals:
-            # coordinates for circle
-            coords = animal.x, animal.y, animal.x + self.animal_diameter, animal.y + self.animal_diameter
-            self.cv.create_oval(coords, fill=animal.color)
-        self.cv.update()
+    # TODO: Implement loading of world from JSON file
+    def load_world(self, world_data):
+        return
+
+    # TODO: Implement saving of world as JSON file
+    def save_world(self):
+        pass
 
     def start_simulation(self):
         self.world.start_world()
-        self.draw_animals()
+        self.update_canvas()
+
+    def update_canvas(self):
+        self.draw_all_animals()
+
+    def draw_all_animals(self):
+        self.canvas.delete('all')
+        for animal in self.world.all_animals:
+            self.draw_animal(animal)
+        self.canvas.update()
+
+    def draw_animal(self, animal):
+        circle_coordinates = animal.x, animal.y, animal.x + self.ANIMAL_DIAMETER, animal.y + self.ANIMAL_DIAMETER
+        self.canvas.create_oval(circle_coordinates, fill=animal.DNA.color)
+
+    def run_world(self):
+        self.world.run()
+        if self.world.is_running():
+            self.update_canvas()
+
 

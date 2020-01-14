@@ -1,9 +1,8 @@
-
 class Animal(object):
-    def __init__(self, start_x, start_y, DNA, color, speed):
+    def __init__(self, start_x, start_y, DNA):
         self.x = start_x
         self.y = start_y
         self.DNA = DNA
-        self.color = color
-        self.speed = speed
 
+    def move(self):
+        self.x += self.DNA.speed
