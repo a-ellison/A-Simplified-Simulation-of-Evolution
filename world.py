@@ -1,6 +1,6 @@
 import logging
-from random import randint
-import animal
+import time
+from animal import Animal
 from enum import Enum
 from DNA import DNA
 
@@ -15,25 +15,24 @@ class WorldState(Enum):
 
 
 class World(object):
-    def __init__(self, world_length):
-        self.world_length = world_length
+    def __init__(self,world_width, world_height):
+        self.world_width = world_width
+        self.world_height = world_height
 
-        # self.all_animals = [[None for _ in range(world_length)] for _ in range(world_length)]
         self.all_animals = []
         self.used_positions = set()
         self.time = 0
-        # self.start_population =
 
         self.world_state = WorldState.STOP
 
     def start_world(self):
         logging.debug('World Started')
-        self.create_test_animal((self.world_length / 2, self.world_length / 2), DNA(10, 'red'))
-        self.create_test_animal((4.5, 50.5), DNA(9, 'green'))
+        self.create_test_animal((self.world_width / 2, self.world_height / 2), DNA(3, 'red'))
+        self.create_test_animal((4.5, 50.5), DNA(1, 'green'))
         self.world_state = WorldState.GO
 
     def create_test_animal(self, coordinates, DNA):
-        new_animal = animal.Animal(*coordinates, DNA)
+        new_animal = Animal(*coordinates, DNA)
         self.all_animals.append(new_animal)
         self.used_positions.add(coordinates)
 
@@ -46,6 +45,7 @@ class World(object):
     def test_step(self):
         for animal in self.all_animals:
             animal.move()
+            time.sleep(3)
             logging.debug('Animal moved')
 
     # TODO: Implement mating of two animals

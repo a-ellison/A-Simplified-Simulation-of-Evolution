@@ -2,22 +2,23 @@ from world import World
 
 
 class WorldController(object):
-    def __init__(self, canvas, canvas_length, world_data=None):
+    def __init__(self, canvas, canvas_width, canvas_height, scale_factor, world_data=None):
         self.canvas = canvas
-        self.canvas_length = canvas_length
-        self.ANIMAL_DIAMETER = 5
+        self.canvas_width = canvas_width
+        self.canvas_height = canvas_height
+        self.scale_factor = scale_factor
         if world_data is None:
-            self.world = World(self.canvas_length)
+            self.world = World(self.canvas_width, canvas_height)
         else:
             self.world = self.load_world(world_data)
 
     # TODO: Implement loading of world from JSON file
     def load_world(self, world_data):
-        return
+        raise NotImplementedError
 
     # TODO: Implement saving of world as JSON file
     def save_world(self):
-        pass
+        raise NotImplementedError
 
     def start_simulation(self):
         self.world.start_world()
@@ -33,8 +34,8 @@ class WorldController(object):
         self.canvas.update()
 
     def draw_animal(self, animal):
-        circle_coordinates = animal.x, animal.y, animal.x + self.ANIMAL_DIAMETER, animal.y + self.ANIMAL_DIAMETER
-        self.canvas.create_oval(circle_coordinates, fill=animal.DNA.color)
+        coordinates = animal.get_coordinates().scale()
+        self.canvas.create_circle(coordinates.get_x(), coordinates.get_y(), fill=animal.get_color())
 
     def run_world(self):
         self.world.run()
