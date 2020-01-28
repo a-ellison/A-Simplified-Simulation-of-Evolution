@@ -1,5 +1,5 @@
 class DNA(object):
-    def __init__(self, speed, color, energy_capacity, sight_range, size):
+    def __init__(self, speed, color, energy_capacity=0, sight_range=0, size=10):
         self.speed = speed
         self.color = color
         self.energy_capacity = energy_capacity

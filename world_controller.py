@@ -8,15 +8,15 @@ class WorldController(object):
         self.canvas_height = canvas_height
         self.scale_factor = scale_factor
         if world_data is None:
-            self.world = World(self.canvas_width, canvas_height)
+            self.world = World(self.canvas_width*self.scale_factor, self.canvas_height*self.scale_factor)
         else:
             self.world = self.load_world(world_data)
 
-    # TODO: Implement loading of world from JSON file
+    # TODO: Implement loading world from JSON file
     def load_world(self, world_data):
         raise NotImplementedError
 
-    # TODO: Implement saving of world as JSON file
+    # TODO: Implement saving world to JSON file
     def save_world(self):
         raise NotImplementedError
 
@@ -34,8 +34,9 @@ class WorldController(object):
         self.canvas.update()
 
     def draw_animal(self, animal):
-        coordinates = animal.get_coordinates().scale()
-        self.canvas.create_circle(coordinates.get_x(), coordinates.get_y(), fill=animal.get_color())
+        coordinate = animal.get_coordinate().scaled_to(self.scale_factor)
+        scaled_size = animal.get_size() / self.scale_factor
+        self.canvas.create_circle(coordinate.x, coordinate.y, scaled_size, fill=animal.get_color())
 
     def run_world(self):
         self.world.run()

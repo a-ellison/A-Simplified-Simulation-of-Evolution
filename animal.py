@@ -2,16 +2,19 @@ from coordinates import Coordinate
 
 
 class Animal(object):
-    def __init__(self, start_x, start_y, DNA):
-        self.x = start_x
-        self.y = start_y
-        self.DNA = DNA
+    def __init__(self, coordinate, dna):
+        self.x = coordinate.x
+        self.y = coordinate.y
+        self.dna = dna
 
     def move(self):
-        self.x += self.DNA.speed
+        self.x += self.dna.speed
 
     def get_coordinate(self):
         return Coordinate(self.x, self.y)
 
     def get_color(self):
-        return self.DNA.color
+        return self.dna.color
+
+    def get_size(self):
+        return self.dna.size
