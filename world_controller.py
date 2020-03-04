@@ -39,8 +39,12 @@ class WorldController(object):
         self.canvas.create_circle(coordinate.x, coordinate.y, scaled_size, fill=animal.get_color())
 
     def run_world(self):
+        self.run_tests()
         self.world.run()
         if self.world.is_running():
             self.update_canvas()
+
+    def run_tests(self):
+        pass
 
 

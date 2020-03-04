@@ -1,4 +1,4 @@
-from coordinates import Coordinate
+from coordinate import Coordinate
 
 
 class Animal(object):

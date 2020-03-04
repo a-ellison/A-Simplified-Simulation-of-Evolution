@@ -1,6 +1,6 @@
 import logging
 from animal import Animal
-from coordinates import Coordinate
+from coordinate import Coordinate
 from DNA import DNA
 from enum import Enum
 
@@ -9,8 +9,6 @@ logging.basicConfig(filename='world.log', level=logging.DEBUG,
                     format='%(asctime)s %(levelname)-8s %(name)-15s %(message)s', filemode='w')
 
 START_POPULATION = 100
-RELATIVE_MINIMUM_ANIMAL_SIZE = 0.5  # in percent, corresponds to 2px with 360px wide/high map
-RELATIVE_MAXIMUM_ANIMAL_SIZE = 2.8  # in percent, corresponds to 10px with 360px wide/high map
 
 
 class WorldState(Enum):
@@ -25,20 +23,16 @@ class World(object):
         Animal.MAX_X = self.world_width
         Animal.MAX_Y = self.world_height
 
-        self.MIN_ANIMAL_SIZE = round(min(self.world_width, self.world_height) * RELATIVE_MINIMUM_ANIMAL_SIZE)
-        self.MAX_ANIMAL_SIZE = round(min(self.world_width, self.world_height) * RELATIVE_MINIMUM_ANIMAL_SIZE)
+        self.MIN_SIZE = DNA.calculate_min_animal_size(min(world_width, world_height))
+        self.MAX_SIZE = DNA.calculate_max_animal_size(min(world_width, world_height))
+        self.MIN_SPEED = DNA.calculate_min_animal_speed(min(world_width, world_height))
+        self.MAX_SPEED = DNA.calculate_max_animal_speed(min(world_width, world_height))
 
         self.all_animals = []
         self.used_coordinates = set()
         self.time = 0
 
         self.world_state = WorldState.STOP
-
-    def calculate_absolute_minimal_animal_size(self):
-        return round(min(self.world_width, self.world_height) * RELATIVE_MINIMUM_ANIMAL_SIZE)
-
-    def calculate_absolute_maximal_animal_size(self):
-        return round(min(self.world_width, self.world_height) * RELATIVE_MAXIMUM_ANIMAL_SIZE)
 
     def start_world(self):
         logging.debug('World Started')
@@ -58,7 +52,7 @@ class World(object):
     def generate_animal(self):
         random_coordinate = Coordinate.generate_random(self.world_width, self.world_height,
                                                        self.used_coordinates)
-        random_dna = DNA.generate_random()
+        random_dna = DNA.generate_random(self.MIN_SIZE, self.MAX_SIZE, self.MIN_SPEED, self.MAX_SPEED)
         self.create_animal(random_coordinate, random_dna)
 
     def create_animal(self, coordinate, DNA):
