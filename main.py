@@ -1,4 +1,4 @@
-from application import Application
+from main_page.application import Application
 
 
 if __name__ == '__main__':

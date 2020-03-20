@@ -1,11 +1,11 @@
 import logging
-from animal import Animal
+from structs.animal import Animal
 from coordinate import Coordinate
-from DNA import DNA
+from dna import DNA
 from enum import Enum
 
 # Configure logging
-logging.basicConfig(filename='world.log', level=logging.DEBUG,
+logging.basicConfig(filename='../world.log', level=logging.DEBUG,
                     format='%(asctime)s %(levelname)-8s %(name)-15s %(message)s', filemode='w')
 
 START_POPULATION = 100

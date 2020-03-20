@@ -1,8 +1,7 @@
 from tkinter import *
-import world_controller
+from world_controller import WorldController
 import logging
 
-# Configure logging
 logging.basicConfig(filename='application.log', level=logging.DEBUG,
                     format='%(asctime)s %(levelname)-8s %(name)-15s %(message)s', filemode='w')
 
@@ -15,7 +14,7 @@ APPLICATION_TITLE = 'A Simplified Simulation of Evolution'
 WIDGET_SPACING = 10
 
 
-class Application(object):
+class MainPage(object):
     def __init__(self, window_width=640, window_height=480, canvas_width=None, canvas_height=None,
                  canvas_background_color='black', scaling_factor=1):
         self.window_width = window_width
@@ -34,7 +33,7 @@ class Application(object):
         self.draw_widgets()
         self.scaling_factor = scaling_factor
 
-        self.world_controller = world_controller.WorldController(self.canvas, self.canvas_width, self.canvas_height, self.scaling_factor)
+        self.world_controller = WorldController(self.canvas, self.canvas_width, self.canvas_height, self.scaling_factor)
 
         self.window.after(100, self.run_world)
         self.window.mainloop()

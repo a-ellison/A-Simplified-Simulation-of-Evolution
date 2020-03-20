@@ -1,4 +1,4 @@
-from coordinate import Coordinate
+from helper_structs.coordinate import Coordinate
 
 
 class Animal(object):

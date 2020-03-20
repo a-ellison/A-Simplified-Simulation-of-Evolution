@@ -1,4 +1,4 @@
-from world import World
+from main_page.world import World
 
 
 class WorldController(object):

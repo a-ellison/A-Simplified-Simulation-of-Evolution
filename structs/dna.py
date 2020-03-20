@@ -1,5 +1,5 @@
 from random import randint
-from color import Color
+from helper_structs.color import Color
 
 RELATIVE_MIN_ANIMAL_SIZE = 0.5  # percent of the width/height, corresponds to 2px with 360px wide/high map
 RELATIVE_MAX_ANIMAL_SIZE = 2.8  # percent of the width/height, corresponds to 10px with 360px wide/high map
