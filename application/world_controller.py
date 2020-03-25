@@ -1,4 +1,5 @@
-from main_page.world import World
+from world import World
+from data_collector import DataCollector
 
 
 class WorldController(object):
@@ -10,18 +11,19 @@ class WorldController(object):
         if world_data is None:
             self.world = World(self.canvas_width*self.scale_factor, self.canvas_height*self.scale_factor)
         else:
-            self.world = self.load_world(world_data)
+            self.world = self.from_JSON(world_data)
+        self.data_collector = DataCollector(self.world)
 
-    # TODO: Implement loading world from JSON file
-    def load_world(self, world_data):
+    # TODO: Implement loading world file)
+    def from_JSON(self, world_data):
         raise NotImplementedError
 
-    # TODO: Implement saving world to JSON file
+    # TODO: Implement saving to file)
     def save_world(self):
         raise NotImplementedError
 
-    def start_simulation(self):
-        self.world.start_world()
+    def initialize_simulation(self):
+        self.world.initialize_world()
         self.update_canvas()
 
     def update_canvas(self):
@@ -36,12 +38,13 @@ class WorldController(object):
     def draw_animal(self, animal):
         coordinate = animal.get_coordinate().scaled_to(self.scale_factor)
         scaled_size = animal.get_size() / self.scale_factor
-        self.canvas.create_circle(coordinate.x, coordinate.y, scaled_size, fill=animal.get_color())
+        self.canvas.create_circle(coordinate.x, coordinate.y, scaled_size, fill=animal.get_color().to_hex_string())
 
     def run_world(self):
         self.run_tests()
         self.world.run()
         if self.world.is_running():
+            self.data_collector.track()
             self.update_canvas()
 
     def run_tests(self):

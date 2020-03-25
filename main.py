@@ -1,5 +1,6 @@
-from main_page.application import Application
+import logging
+from main_page import MainPage
 
 
 if __name__ == '__main__':
-    application = Application(scaling_factor=1)
+    application = MainPage()

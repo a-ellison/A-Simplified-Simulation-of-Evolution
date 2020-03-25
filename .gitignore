@@ -1,5 +1,7 @@
-__pycache__/**
 venv/**
 .idea/**
-*.log
-
+__pycache__/
+application/__pycache__/
+data/__pycache__/
+helper_classes/__pycache__/
+structs/__pycache__/

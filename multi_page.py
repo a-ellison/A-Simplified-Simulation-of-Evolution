@@ -1,28 +1,34 @@
 import tkinter as tk
 
+
 class Page(tk.Frame):
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
+
     def show(self):
         self.lift()
 
+
 class Page1(Page):
-   def __init__(self, *args, **kwargs):
-       Page.__init__(self, *args, **kwargs)
-       label = tk.Label(self, text="This is page 1")
-       label.pack(side="top", fill="both", expand=True)
+    def __init__(self, *args, **kwargs):
+        Page.__init__(self, *args, **kwargs)
+        label = tk.Label(self, text="This is page 1")
+        label.pack(side="top", fill="both", expand=True)
+
 
 class Page2(Page):
-   def __init__(self, *args, **kwargs):
-       Page.__init__(self, *args, **kwargs)
-       label = tk.Label(self, text="This is page 2")
-       label.pack(side="top", fill="both", expand=True)
+    def __init__(self, *args, **kwargs):
+        Page.__init__(self, *args, **kwargs)
+        label = tk.Label(self, text="This is page 2")
+        label.pack(side="top", fill="both", expand=True)
+
 
 class Page3(Page):
-   def __init__(self, *args, **kwargs):
-       Page.__init__(self, *args, **kwargs)
-       label = tk.Label(self, text="This is page 3")
-       label.pack(side="top", fill="both", expand=True)
+    def __init__(self, *args, **kwargs):
+        Page.__init__(self, *args, **kwargs)
+        label = tk.Label(self, text="This is page 3")
+        label.pack(side="top", fill="both", expand=True)
+
 
 class MainView(tk.Frame):
     def __init__(self, *args, **kwargs):
@@ -49,6 +55,7 @@ class MainView(tk.Frame):
         b3.pack(side="left")
 
         p1.show()
+
 
 if __name__ == "__main__":
     root = tk.Tk()

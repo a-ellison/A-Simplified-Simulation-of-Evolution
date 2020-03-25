@@ -1,17 +1,20 @@
 from random import randint
-from helper_structs.color import Color
+from helper_classes.functions import Functions
+from color import Color
 
-RELATIVE_MIN_ANIMAL_SIZE = 0.5  # percent of the width/height, corresponds to 2px with 360px wide/high map
-RELATIVE_MAX_ANIMAL_SIZE = 2.8  # percent of the width/height, corresponds to 10px with 360px wide/high map
-RELATIVE_MIN_ANIMAL_SPEED = 0.3  # percent of the width/height, corresponds to 1 px distance with 360px wide/high map
-RELATIVE_MAX_ANIMAL_SPEED = 1.4  # percent of the width/height, corresponds to 5 px distance with 360px wide/high map
+FACTOR = 100
+MIN_SIZE = 150 / 100
+MAX_SIZE = 240 / 100
+MIN_SPEED = 150 / 100
+MAX_SPEED = 240 / 100
 
 
 class DNA(object):
-    def __init__(self, speed, color, energy_capacity=0, sight_range=0, size=10):
+    def __init__(self, speed: int, color: Color, size: int, direction: int, max_energy: int, sight_range: int):
         self.speed = speed
         self.color = color
-        self.energy_capacity = energy_capacity
+        self.direction = direction  # degrees
+        self.max_energy = max_energy
         self.sight_range = sight_range
         self.size = size
 
@@ -20,22 +23,26 @@ class DNA(object):
         pass
 
     @classmethod
-    def generate_random(cls, min_animal_size, max_animal_size, min_speed, max_speed):
-        speed = randint(min_speed, max_speed)
-        color = Color.generate_random()
+    def random(cls):
+        speed = Functions.uniform(MIN_SPEED, MAX_SPEED, FACTOR)
+        color = Color.random()
+        size = Functions.uniform(MIN_SIZE, MAX_SIZE, FACTOR)
+        direction = randint(1, 360)
+        max_energy = 99
+        sight_range = 99
+        return DNA(speed, color, size, direction, max_energy, sight_range)
 
-    @classmethod
-    def calculate_min_animal_size(cls, world_length):
-        return round(world_length * RELATIVE_MIN_ANIMAL_SIZE)
+    def get_speed(self):
+        return self.speed
 
-    @classmethod
-    def calculate_max_animal_size(cls, world_length):
-        return round(world_length * RELATIVE_MAX_ANIMAL_SIZE)
+    def get_size(self):
+        return self.speed
 
-    @classmethod
-    def calculate_min_animal_speed(cls, world_length):
-        return round(world_length * RELATIVE_MIN_ANIMAL_SPEED)
+    def get_color(self):
+        return self.color
 
-    @classmethod
-    def calculate_max_animal_speed(cls, world_length):
-        return round(world_length * RELATIVE_MAX_ANIMAL_SPEED)
+    def get_max_energy(self):
+        return self.max_energy
+
+    def get_direction(self):
+        return self.direction
