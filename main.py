@@ -1,6 +1,5 @@
-import logging
-from main_page import MainPage
-
+from application.application import Application
 
 if __name__ == '__main__':
-    application = MainPage()
+    application = Application()
+    application.mainloop()
