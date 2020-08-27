@@ -1,6 +1,5 @@
 import concurrent.futures
 import logging
-from enum import Enum
 
 from models.simulation import Simulation
 
@@ -8,35 +7,33 @@ thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
 
 class SimulationController(object):
-    STOP = 0
-    GO = 1
+    PAUSE = 0
+    PLAY = 1
     RUNNING = 2
 
-    def __init__(self, app):
-        self.app = app
-        self.state = SimulationController.STOP
-        self.simulation = Simulation(app.canvas_width, app.canvas_height)
+    def __init__(self, canvas, canvas_width, canvas_height):
+        self.canvas = canvas
+        self.state = SimulationController.PAUSE
+        self.simulation = Simulation(canvas_width, canvas_height)
 
     def update_canvas(self):
-        # self.app.canvas.delete('all')
-        # for animal in self.simulation.get_animals():
-        #     self.draw_animal(animal)
-        # self.app.canvas.update()
-        logging.info('Updating canvas')
+        self.canvas.delete('all')
+        for obj in self.simulation.get_all_objects():
+            self.draw(obj)
+        self.canvas.update()
 
-    def draw_animal(self, animal):
-        point = animal.get_position()
-        self.app.canvas.create_circle(point.x, point.y, animal.size, fill=animal.color.to_hex_string())
+    def draw(self, obj):
+        self.canvas.create_circle(obj.x, obj.y, obj.size, fill=obj.color.to_hex())
 
     def play(self):
         if self.state != SimulationController.RUNNING:
-            logging.info('Simulation playing')
+            logging.info('Not running right now --> playing simulation')
             self.state = SimulationController.RUNNING
 
             def callback(this_future):
-                self.app.after(0, self.update_canvas)
-                if self.state != SimulationController.STOP:
-                    self.state = SimulationController.GO
+                self.canvas.after(0, self.update_canvas)
+                if self.state != SimulationController.PAUSE:
+                    self.state = SimulationController.PLAY
                     self.play()
 
             future = thread_pool.submit(self.simulation.step)
@@ -44,4 +41,4 @@ class SimulationController(object):
 
     def pause(self):
         logging.info('Pausing simulation')
-        self.state = SimulationController.STOP
+        self.state = SimulationController.PAUSE

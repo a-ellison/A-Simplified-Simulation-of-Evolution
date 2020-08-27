@@ -7,3 +7,6 @@ Notes:
 Simple creature phases:
 - orient --> towards food or wander 
 - act --> eat if food in reach, sleep if satisfied, duplicate if eaten 2 foods
+
+TODO:
+    - have all drawable objects derive from a common class with basic properties to be able to draw the object (size and color, maybe also shape)

@@ -1,8 +1,4 @@
-import asyncio
-import concurrent
 import tkinter
-from concurrent import futures
-
 from application.simulation_controller import SimulationController
 import logging
 
@@ -16,8 +12,8 @@ def _create_circle(self, x, y, r, **kwargs):
 
 tkinter.Canvas.create_circle = _create_circle
 
-DEFAULT_WINDOW_WIDTH = 1080
-DEFAULT_WINDOW_HEIGHT = 720
+DEFAULT_WINDOW_WIDTH = 600
+DEFAULT_WINDOW_HEIGHT = 400
 APPLICATION_TITLE = 'A Simplified Simulation of Evolution'
 WIDGET_SPACING = 10
 
