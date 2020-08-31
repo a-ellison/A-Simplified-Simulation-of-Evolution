@@ -10,8 +10,8 @@ class Simulation:
         self.world_width = world_width
         self.world_height = world_height
         self.behavior = PrimitiveBehavior
-        self.world = world.World(self.behavior.ANIMAL, self.world_width, self.world_height)
-        self.behavior.initialize(world)
+        self.world = world.World(self.world_width, self.world_height)
+        self.behavior.initialize(self.world)
 
     # TODO: Implement loading world file
     def load(self, world_data):
@@ -22,9 +22,7 @@ class Simulation:
         raise NotImplementedError
 
     def step(self):
-        logging.info('step started')
-        time.sleep(3)
-        logging.info('step done')
+        self.behavior.apply(self.world)
 
-    def get_all_objects(self):
-        return self.world.all_objects
+    def get_all_drawables(self):
+        return self.world.all_drawables

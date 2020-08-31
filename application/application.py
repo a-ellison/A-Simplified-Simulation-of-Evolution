@@ -38,7 +38,7 @@ class Application(tkinter.Tk):
                                                      command=self.pause_simulation_action)
         self.exit_button = tkinter.Button(self.controls_frame, text='Exit', command=self.exit_button_action)
         self.draw_widgets()
-        self.simulation_controller = SimulationController(self)
+        self.simulation_controller = SimulationController(self.canvas)
 
     def configure_window(self):
         self.title(APPLICATION_TITLE)
@@ -53,6 +53,7 @@ class Application(tkinter.Tk):
     def exit_button_action(self):
         if self.simulation_controller.state == SimulationController.RUNNING:
             logging.info('Cant exit yet...')
+            self.simulation_controller.pause()
             self.after(10, self.exit_button_action)
         else:
             logging.info('Exiting...')

@@ -1,18 +1,11 @@
-import concurrent.futures
-import time
-
-thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+import helper_functions
 
 
-class Sandbox():
-    def run(self):
-        future = thread_pool.submit(self.long_task)
-
-    def long_task(self):
-        time.sleep(3)
-        print('Done')
+def main():
+    x, y = 2, 10
+    x, y = helper_functions.get_new_position(x, y, 720, 10)
+    print(x, y)
 
 
-sandbox = Sandbox()
-sandbox.run()
-print('Hello')
+if __name__ == '__main__':
+    main()

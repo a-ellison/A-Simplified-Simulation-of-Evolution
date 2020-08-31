@@ -1,5 +1,6 @@
 import concurrent.futures
 import logging
+import time
 
 from models.simulation import Simulation
 
@@ -11,27 +12,30 @@ class SimulationController(object):
     PLAY = 1
     RUNNING = 2
 
-    def __init__(self, canvas, canvas_width, canvas_height):
+    def __init__(self, canvas):
         self.canvas = canvas
         self.state = SimulationController.PAUSE
-        self.simulation = Simulation(canvas_width, canvas_height)
+        self.simulation = Simulation(self.canvas.master.canvas_width, self.canvas.master.canvas_width)
+        self.initialize_canvas()
+
+    def initialize_canvas(self):
+        for drawable in self.simulation.get_all_drawables():
+            canvas_object = self.canvas.create_circle(drawable.x, drawable.y, drawable.size, fill=drawable.color.to_hex())
+            drawable.canvas_object = canvas_object
 
     def update_canvas(self):
-        self.canvas.delete('all')
-        for obj in self.simulation.get_all_objects():
-            self.draw(obj)
+        for drawable in self.simulation.get_all_drawables():
+            dx = drawable.x - drawable.last_x
+            dy = drawable.y - drawable.last_y
+            self.canvas.move(drawable.canvas_object, dx, dy)
         self.canvas.update()
-
-    def draw(self, obj):
-        self.canvas.create_circle(obj.x, obj.y, obj.size, fill=obj.color.to_hex())
 
     def play(self):
         if self.state != SimulationController.RUNNING:
-            logging.info('Not running right now --> playing simulation')
             self.state = SimulationController.RUNNING
 
             def callback(this_future):
-                self.canvas.after(0, self.update_canvas)
+                self.update_canvas()
                 if self.state != SimulationController.PAUSE:
                     self.state = SimulationController.PLAY
                     self.play()
@@ -42,3 +46,5 @@ class SimulationController(object):
     def pause(self):
         logging.info('Pausing simulation')
         self.state = SimulationController.PAUSE
+
+

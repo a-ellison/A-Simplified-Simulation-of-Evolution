@@ -1,15 +1,17 @@
+import logging
 import random
 
+from models import drawable
 from models.behavior import Behavior
 from models.primitive import primitive_animal
+from structs.color import Color
 import helper_functions
 
-
 DECIMAL_PLACES = 2
-MIN_EDIBLE_SIZE = 20 / 10 ** DECIMAL_PLACES
-MAX_EDIBLE_SIZE = 50 / 10 ** DECIMAL_PLACES
+MIN_EDIBLE_SIZE = 300 / 10 ** DECIMAL_PLACES
+MAX_EDIBLE_SIZE = 400 / 10 ** DECIMAL_PLACES
 
-START_POPULATION = 100
+START_POPULATION = 10
 
 FOOD_LIST = 'food'
 
@@ -25,26 +27,34 @@ class PrimitiveBehavior(Behavior):
     @classmethod
     def generate_animals(cls, world):
         for i in range(int(START_POPULATION)):
-            world.create_animal()
+            cls.create_animal(world)
+
+    @classmethod
+    def create_animal(cls, world):
+        new_animal = primitive_animal.PrimitiveAnimal.random(world.width, world.height, color=Color(0, 0, 255))
+        world.all_animals.append(new_animal)
 
     @classmethod
     def generate_food(cls, world):
         world.objects[FOOD_LIST] = []
         for i in range(int(START_POPULATION * 0.75)):
-            x = random.randint(int(world.width / 4), int(world.width * 3/4))
-            y = random.randint(int(world.height) / 4, int(world.height * 3/4))
+            x = random.randint(int(world.width / 4), int(world.width * 3 / 4))
+            y = random.randint(int(world.height / 4), int(world.height * 3 / 4))
             size = helper_functions.random_decimal(MIN_EDIBLE_SIZE, MAX_EDIBLE_SIZE, DECIMAL_PLACES)
             food = Edible(x, y, size)
             world.objects[FOOD_LIST].append(food)
 
     @classmethod
     def apply(cls, world):
+        logging.info('Applying behavior...')
         for animal in world.all_animals:
             cls.orient(animal, world)
         for animal in world.all_animals:
-            cls.move(animal, world)
-        for animal in world.all_animals:
-            cls.act(animal, world)
+            animal.move(world.width, world.height)
+        import time
+        time.sleep(0.5)
+        # for animal in world.all_animals:
+        #     cls.act(animal, world)
 
     @classmethod
     def orient(cls, animal, world):
@@ -62,7 +72,12 @@ class PrimitiveBehavior(Behavior):
 
     @classmethod
     def add_wander_objective(cls, animal, world):
-        PRIORITY = Objective.LOW
+        direction = random.randint(0, 365)
+        distance = animal.speed
+        x, y = helper_functions.get_new_position(animal.x, animal.y, direction, distance)
+        x, y = helper_functions.restrict_position(x, y, world.width, world.height)
+        objective = Objective(x, y, Objective.LOW, 'wandering')
+        animal.add_objective(objective)
 
     @classmethod
     def move(cls, animal, world):
@@ -78,15 +93,13 @@ class Objective:
     MEDIUM = 'medium'
     HIGH = 'high'
 
-    def __init__(self, position, intensity, reason):
-        self.position = position
+    def __init__(self, x, y, intensity, reason):
+        self.x = x
+        self.y = y
         self.intensity = intensity
         self.reason = reason
 
 
-class Edible:
+class Edible(drawable.Drawable):
     def __init__(self, x, y, size):
-        self.x = x
-        self.y = y
-        self.size = size
-        self.color = '#FFFFFF'
+        super().__init__(x, y, size, Color(255, 255, 255))
