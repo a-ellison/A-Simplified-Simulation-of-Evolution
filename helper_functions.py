@@ -21,11 +21,11 @@ def to_radians(degrees):
     return degrees * math.pi / 180
 
 
-def restrict_position(x, y, max_x, max_y):
-    x = min(x, max_x)
-    x = max(0, x)
-    y = min(y, max_y)
-    y = max(0, y)
+def restrict_position(x, y, max_x, max_y, radius=0):
+    x = min(x + radius, max_x)
+    x = max(0, x - radius)
+    y = min(y + radius, max_y)
+    y = max(0, y - radius)
     return x, y
 
 
@@ -37,6 +37,8 @@ def distance_to(x, y, target_x, target_y):
 
 def angle_to(x, y, target_x, target_y):
     dx = target_x - x
+    if dx == 0:
+        return 0
     dy = target_y - y
     return math.atan(dy / dx)
 

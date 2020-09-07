@@ -32,10 +32,12 @@ class Application(tkinter.Tk):
         self.canvas_height = self.window_height * 0.9
         self.canvas = tkinter.Canvas(self, width=self.canvas_width, height=self.canvas_height, bg='black')
         self.controls_frame = tkinter.Frame(self, height=200, width=150)
-        self.play_simulation_button = tkinter.Button(self.controls_frame, text='Start Simulation',
+        self.play_simulation_button = tkinter.Button(self.controls_frame, text='Start',
                                                      command=self.play_simulation_action)
-        self.pause_simulation_button = tkinter.Button(self.controls_frame, text='Pause Simulation',
+        self.pause_simulation_button = tkinter.Button(self.controls_frame, text='Pause',
                                                      command=self.pause_simulation_action)
+        self.reset_simulation_button = tkinter.Button(self.controls_frame, text='Reset',
+                                                      command=self.reset_simulation_action)
         self.exit_button = tkinter.Button(self.controls_frame, text='Exit', command=self.exit_button_action)
         self.draw_widgets()
         self.simulation_controller = SimulationController(self.canvas)
@@ -50,6 +52,11 @@ class Application(tkinter.Tk):
     def pause_simulation_action(self):
         self.simulation_controller.pause()
 
+    def reset_simulation_action(self):
+        self.canvas.delete('all')
+        self.simulation_controller.pause()
+        self.simulation_controller = SimulationController(self.canvas)
+
     def exit_button_action(self):
         if self.simulation_controller.state == SimulationController.RUNNING:
             logging.info('Cant exit yet...')
@@ -63,6 +70,7 @@ class Application(tkinter.Tk):
         self.canvas.place(x=self.window_width / 2 - self.canvas_width / 2, y=0)
         self.play_simulation_button.pack(side=tkinter.LEFT)
         self.pause_simulation_button.pack(side=tkinter.LEFT)
+        self.reset_simulation_button.pack(side=tkinter.LEFT)
         self.exit_button.pack(side=tkinter.LEFT)
         self.controls_frame.place(x=self.window_width / 2 - 5 * WIDGET_SPACING,
                                   y=self.canvas_height + 3 * WIDGET_SPACING)

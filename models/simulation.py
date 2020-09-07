@@ -1,5 +1,4 @@
 import logging
-import time
 
 from models import world
 from models.primitive.primitive_behavior import PrimitiveBehavior
@@ -22,7 +21,15 @@ class Simulation:
         raise NotImplementedError
 
     def step(self):
-        self.behavior.apply(self.world)
+        import time
+        start = time.perf_counter()
+        try:
+            self.behavior.apply(self.world)
+            logging.info(f'Step took {time.perf_counter() - start}s')
+            return True
+        except BaseException as e:
+            logging.error(str(e))
+            return False
 
     def get_all_drawables(self):
         return self.world.all_drawables

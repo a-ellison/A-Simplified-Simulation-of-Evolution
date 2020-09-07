@@ -11,7 +11,7 @@ DECIMAL_PLACES = 2
 MIN_EDIBLE_SIZE = 300 / 10 ** DECIMAL_PLACES
 MAX_EDIBLE_SIZE = 400 / 10 ** DECIMAL_PLACES
 
-START_POPULATION = 10
+START_POPULATION = 1000
 
 FOOD_LIST = 'food'
 
@@ -46,13 +46,12 @@ class PrimitiveBehavior(Behavior):
 
     @classmethod
     def apply(cls, world):
-        logging.info('Applying behavior...')
         for animal in world.all_animals:
             cls.orient(animal, world)
         for animal in world.all_animals:
             animal.move(world.width, world.height)
-        import time
-        time.sleep(0.5)
+            logging.info(f'Moved x from {animal.last_x} to {animal.x}')
+            logging.info(f'Moved y from {animal.last_y} to {animal.y}')
         # for animal in world.all_animals:
         #     cls.act(animal, world)
 
@@ -73,11 +72,11 @@ class PrimitiveBehavior(Behavior):
     @classmethod
     def add_wander_objective(cls, animal, world):
         direction = random.randint(0, 365)
+        logging.info(f'Objective at {direction} degrees')
         distance = animal.speed
         x, y = helper_functions.get_new_position(animal.x, animal.y, direction, distance)
         x, y = helper_functions.restrict_position(x, y, world.width, world.height)
-        objective = Objective(x, y, Objective.LOW, 'wandering')
-        animal.add_objective(objective)
+        animal.add_objective(Objective(x, y, Objective.LOW, 'wandering'))
 
     @classmethod
     def move(cls, animal, world):

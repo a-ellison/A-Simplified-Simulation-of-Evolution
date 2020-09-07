@@ -34,12 +34,11 @@ class PrimitiveAnimal(drawable.Drawable):
         distance = min(self.speed, distance_to_target)
         angle = helper_functions.angle_to(self.x, self.y, target_x, target_y)
         dx = cos(angle) * distance
-        logging.info(f'x changed from {self.x} to {self.x + dx}')
         self.x += dx
         dy = sin(angle) * distance
-        logging.info(f'y changed from {self.y} to {self.y + dy}')
         self.y += dy
-        self.x, self.y = helper_functions.restrict_position(self.x, self.y, max_x, max_y)
+        self.x, self.y = helper_functions.restrict_position(self.x, self.y, max_x, max_y, radius=self.size)
+        self.objective = None
 
     def add_objective(self, new_objective):
         if self.objective is None:
