@@ -20,30 +20,35 @@ class PrimitiveAnimal(drawable.Drawable):
     def __init__(self, x, y, size, color, speed, direction, max_energy, sight_range):
         super().__init__(x, y, size, color)
         self.speed = speed
-        self.direction = direction
         self.max_energy = max_energy
         self.sight_range = sight_range
         self.objective = None
+        self.last_objective = None
 
     def move(self, max_x, max_y):
         self.last_x = self.x
         self.last_y = self.y
-        target_x = self.objective.x
-        target_y = self.objective.y
-        distance_to_target = helper_functions.distance_to(self.x, self.y, target_x, target_y)
+        self.last_objective = self.objective
+        distance_to_target = helper_functions.distance_to(self.x, self.y, self.objective.x, self.objective.y)
         distance = min(self.speed, distance_to_target)
-        angle = helper_functions.angle_to(self.x, self.y, target_x, target_y)
+        angle = self.angle_to_objective()
         dx = cos(angle) * distance
         self.x += dx
         dy = sin(angle) * distance
         self.y += dy
         self.x, self.y = helper_functions.restrict_position(self.x, self.y, max_x, max_y, radius=self.size)
+        self.last_objective = self.objective
         self.objective = None
 
+    def angle_to_objective(self):
+        return helper_functions.angle_to(self.x, self.y, self.objective.x, self.objective.y)
+
+    @property
+    def has_moved(self):
+        return self.last_objective is not None
+
     def add_objective(self, new_objective):
-        if self.objective is None:
-            self.objective = new_objective
-        elif new_objective.intensity > self.objective.intensity:
+        if self.objective is None or new_objective.intensity > self.objective.intensity:
             self.objective = new_objective
 
     @classmethod

@@ -1,4 +1,5 @@
 import logging
+import math
 import random
 
 from models import drawable
@@ -11,7 +12,7 @@ DECIMAL_PLACES = 2
 MIN_EDIBLE_SIZE = 300 / 10 ** DECIMAL_PLACES
 MAX_EDIBLE_SIZE = 400 / 10 ** DECIMAL_PLACES
 
-START_POPULATION = 1000
+START_POPULATION = 100
 
 FOOD_LIST = 'food'
 
@@ -46,6 +47,7 @@ class PrimitiveBehavior(Behavior):
 
     @classmethod
     def apply(cls, world):
+        import time
         for animal in world.all_animals:
             cls.orient(animal, world)
         for animal in world.all_animals:
@@ -71,11 +73,16 @@ class PrimitiveBehavior(Behavior):
 
     @classmethod
     def add_wander_objective(cls, animal, world):
-        direction = random.randint(0, 365)
-        logging.info(f'Objective at {direction} degrees')
-        distance = animal.speed
-        x, y = helper_functions.get_new_position(animal.x, animal.y, direction, distance)
-        x, y = helper_functions.restrict_position(x, y, world.width, world.height)
+        if not animal.has_moved:
+            x, y = world.center
+        else:
+            offset = math.radians(random.randint(-6, 6))
+            direction = helper_functions.angle_to(animal.last_x, animal.last_y, animal.last_objective.x, animal.last_objective.y)
+            direction += offset
+            distance = animal.speed
+            x, y = helper_functions.move_to(animal.x, animal.y, direction, distance)
+            if not world.is_inside(x, y):
+                x, y = world.center
         animal.add_objective(Objective(x, y, Objective.LOW, 'wandering'))
 
     @classmethod

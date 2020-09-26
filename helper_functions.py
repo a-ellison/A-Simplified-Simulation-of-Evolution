@@ -10,15 +10,10 @@ def random_decimal(start, stop, decimal_places):
     return n / factor
 
 
-def get_new_position(old_x, old_y, direction, distance):
-    radians = to_radians(direction)
-    new_x = old_x + math.cos(radians) * distance
-    new_y = old_y + math.sin(radians) * distance
+def move_to(old_x, old_y, direction, distance):
+    new_x = old_x + math.cos(direction) * distance
+    new_y = old_y + math.sin(direction) * distance
     return new_x, new_y
-
-
-def to_radians(degrees):
-    return degrees * math.pi / 180
 
 
 def restrict_position(x, y, max_x, max_y, radius=0):
@@ -40,5 +35,5 @@ def angle_to(x, y, target_x, target_y):
     if dx == 0:
         return 0
     dy = target_y - y
-    return math.atan(dy / dx)
+    return math.atan2(dy, dx)
 

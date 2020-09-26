@@ -12,3 +12,10 @@ class World:
         for i in self.objects:
             all.extend(self.objects[i])
         return all
+
+    @property
+    def center(self):
+        return self.width / 2, self.height / 2
+
+    def is_inside(self, x, y):
+        return 0 < x < self.width and 0 < y < self.height
