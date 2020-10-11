@@ -20,12 +20,15 @@ class Simulation:
     def save(self):
         raise NotImplementedError
 
-    def step(self):
-        import time
-        start = time.perf_counter()
+    def step(self, speed):
         try:
-            self.behavior.apply(self.world)
-            logging.info(f'Step took {time.perf_counter() - start}s')
+            import time
+            start = time.perf_counter()
+            for i in range(speed):
+                self.behavior.apply(self.world)
+            duration = time.perf_counter() - start
+            if duration < 0.3:
+                time.sleep(0.3 - duration)
             return True
         except BaseException as e:
             logging.error(str(e))

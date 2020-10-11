@@ -35,12 +35,14 @@ class Application(tkinter.Tk):
         self.play_simulation_button = tkinter.Button(self.controls_frame, text='Start',
                                                      command=self.play_simulation_action)
         self.pause_simulation_button = tkinter.Button(self.controls_frame, text='Pause',
-                                                     command=self.pause_simulation_action)
+                                                      command=self.pause_simulation_action)
         self.reset_simulation_button = tkinter.Button(self.controls_frame, text='Reset',
                                                       command=self.reset_simulation_action)
         self.exit_button = tkinter.Button(self.controls_frame, text='Exit', command=self.exit_button_action)
-        self.draw_widgets()
         self.simulation_controller = SimulationController(self.canvas)
+        self.speed_scale = tkinter.Scale(self.controls_frame, variable=tkinter.IntVar(), from_=1, to=10,
+                                         command=self.speed_scale_action)
+        self.place_widgets()
 
     def configure_window(self):
         self.title(APPLICATION_TITLE)
@@ -66,11 +68,15 @@ class Application(tkinter.Tk):
             logging.info('Exiting...')
             self.quit()
 
-    def draw_widgets(self):
+    def speed_scale_action(self, new_speed):
+        self.simulation_controller.speed = int(new_speed)
+
+    def place_widgets(self):
         self.canvas.place(x=self.window_width / 2 - self.canvas_width / 2, y=0)
         self.play_simulation_button.pack(side=tkinter.LEFT)
         self.pause_simulation_button.pack(side=tkinter.LEFT)
         self.reset_simulation_button.pack(side=tkinter.LEFT)
         self.exit_button.pack(side=tkinter.LEFT)
+        self.speed_scale.pack(side=tkinter.RIGHT)
         self.controls_frame.place(x=self.window_width / 2 - 5 * WIDGET_SPACING,
                                   y=self.canvas_height + 3 * WIDGET_SPACING)

@@ -15,6 +15,7 @@ class SimulationController(object):
     def __init__(self, canvas):
         self.canvas = canvas
         self.state = SimulationController.PAUSE
+        self.speed = 1
         self.simulation = Simulation(self.canvas.master.canvas_width, self.canvas.master.canvas_height)
         self.initialize_canvas()
 
@@ -37,12 +38,13 @@ class SimulationController(object):
             def callback(this_future):
                 if not this_future._result:
                     raise BaseException('An error has ocurred: ' + str(this_future._exception))
+                import time
                 self.update_canvas()
                 if self.state != SimulationController.PAUSE:
                     self.state = SimulationController.PLAY
                     self.play()
 
-            future = thread_pool.submit(self.simulation.step)
+            future = thread_pool.submit(self.simulation.step, self.speed)
             future.add_done_callback(callback)
 
     def pause(self):
