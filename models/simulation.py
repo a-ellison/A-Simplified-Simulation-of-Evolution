@@ -5,12 +5,12 @@ from models.primitive.primitive_behavior import PrimitiveBehavior
 
 
 class Simulation:
-    def __init__(self, world_width, world_height):
+    def __init__(self, world_width, world_height, start_population, food_count):
         self.world_width = world_width
         self.world_height = world_height
         self.behavior = PrimitiveBehavior
         self.world = world.World(self.world_width, self.world_height)
-        self.behavior.initialize(self.world)
+        self.behavior.initialize(self.world, start_population, food_count)
 
     # TODO: Implement loading world file
     def load(self, world_data):
@@ -27,12 +27,13 @@ class Simulation:
             for i in range(speed):
                 self.behavior.apply(self.world)
             duration = time.perf_counter() - start
-            if duration < 0.3:
-                time.sleep(0.3 - duration)
+            # if duration < 0.1:
+            #     time.sleep(0.1 - duration)
             return True
         except BaseException as e:
             logging.error(str(e))
             return False
 
-    def get_all_drawables(self):
+    @property
+    def all_drawables(self):
         return self.world.all_drawables

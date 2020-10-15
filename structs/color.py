@@ -29,3 +29,6 @@ class Color(object):
         g = int(hex_string[3:5], 16)
         b = int(hex_string[5:7], 16)
         return Color(r, g, b)
+
+    def __str__(self):
+        return f'Color({self.r},{self.g},{self.b})'

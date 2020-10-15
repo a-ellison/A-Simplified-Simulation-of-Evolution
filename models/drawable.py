@@ -10,4 +10,4 @@ class Drawable(abc.ABC):
         self.size = size
         self.color = color
         self.shape = shape
-        self.canvas_object = None
+        self.canvas_id = None

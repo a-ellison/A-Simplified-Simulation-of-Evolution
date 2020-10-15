@@ -1,6 +1,5 @@
 import concurrent.futures
 import logging
-import time
 
 from models.simulation import Simulation
 
@@ -12,33 +11,37 @@ class SimulationController(object):
     PLAY = 1
     RUNNING = 2
 
-    def __init__(self, canvas):
+    def __init__(self, canvas, start_population, food_count):
         self.canvas = canvas
         self.state = SimulationController.PAUSE
         self.speed = 1
-        self.simulation = Simulation(self.canvas.master.canvas_width, self.canvas.master.canvas_height)
+        self.simulation = Simulation(self.canvas.master.canvas_width, self.canvas.master.canvas_height, start_population, food_count)
         self.initialize_canvas()
 
     def initialize_canvas(self):
-        for drawable in self.simulation.get_all_drawables():
-            canvas_object = self.canvas.create_circle(drawable.x, drawable.y, drawable.size, fill=drawable.color.to_hex())
-            drawable.canvas_object = canvas_object
+        for drawable in self.simulation.all_drawables:
+            canvas_id = self.canvas.create_circle(drawable.x, drawable.y, drawable.size, fill=drawable.color.to_hex())
+            drawable.canvas_id = canvas_id
 
     def update_canvas(self):
-        for drawable in self.simulation.get_all_drawables():
+        all_canvas_ids = list(self.canvas.find_all())
+        for drawable in self.simulation.all_drawables:
             dx = drawable.x - drawable.last_x
             dy = drawable.y - drawable.last_y
-            self.canvas.move(drawable.canvas_object, dx, dy)
+            self.canvas.move(drawable.canvas_id, dx, dy)
+            all_canvas_ids.remove(drawable.canvas_id)
+        for unused in all_canvas_ids:
+            self.canvas.delete(unused)
         self.canvas.update()
 
     def play(self):
+        logging.info('Playing simulation')
         if self.state != SimulationController.RUNNING:
             self.state = SimulationController.RUNNING
 
             def callback(this_future):
                 if not this_future._result:
                     raise BaseException('An error has ocurred: ' + str(this_future._exception))
-                import time
                 self.update_canvas()
                 if self.state != SimulationController.PAUSE:
                     self.state = SimulationController.PLAY
