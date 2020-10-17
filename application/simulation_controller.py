@@ -15,6 +15,8 @@ class SimulationController(object):
         self.canvas = canvas
         self.state = SimulationController.PAUSE
         self.speed = 1
+        self.start_population = start_population
+        self.food_count = food_count
         self.simulation = Simulation(self.canvas.master.canvas_width, self.canvas.master.canvas_height, start_population, food_count)
         self.initialize_canvas()
 
@@ -47,10 +49,18 @@ class SimulationController(object):
                     self.state = SimulationController.PLAY
                     self.play()
 
+            all = self.canvas.find_all()
             future = thread_pool.submit(self.simulation.step, self.speed)
             future.add_done_callback(callback)
 
     def pause(self):
         logging.info('Pausing simulation')
         self.state = SimulationController.PAUSE
+
+    def reset(self):
+        self.canvas.delete('all')
+        if self.state != SimulationController.PAUSE:
+            self.pause()
+        self.simulation.reset(self.start_population, self.food_count)
+        self.initialize_canvas()
 

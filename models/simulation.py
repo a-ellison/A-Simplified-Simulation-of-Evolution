@@ -37,3 +37,7 @@ class Simulation:
     @property
     def all_drawables(self):
         return self.world.all_drawables
+
+    def reset(self, start_population, food_count):
+        self.world.wipe()
+        self.behavior.initialize(self.world, start_population, food_count)

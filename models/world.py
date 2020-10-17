@@ -19,3 +19,7 @@ class World:
 
     def is_inside(self, x, y):
         return 0 < x < self.width and 0 < y < self.height
+
+    def wipe(self):
+        self.all_animals = []
+        self.objects = {}

@@ -42,42 +42,45 @@ class Application(tkinter.Tk):
         self.pause_simulation_button = tkinter.Button(self.controls_frame, text='Pause',
                                                       command=self.simulation_controller.pause)
         self.reset_simulation_button = tkinter.Button(self.controls_frame, text='Reset',
-                                                      command=self.reset_simulation_action)
+                                                      command=self.simulation_controller.reset)
         self.exit_button = tkinter.Button(self.controls_frame, text='Exit', command=self.exit_button_action)
         self.speed_label = tkinter.Label(self.controls_frame, text='Speed:')
         self.speed = tkinter.IntVar(value=1)
         self.speed_scale = tkinter.Scale(self.controls_frame, variable=self.speed, from_=1, to=10,
-                                         command=self.speed_scale_action, orient=tkinter.HORIZONTAL)
+                                         command=self.set_speed_action, orient=tkinter.HORIZONTAL)
         self.start_population_label = tkinter.Label(self.controls_frame, text='Start Population:')
-        validate_entry_command = (self.register(self.validate_entry), '%P')
         self.start_population = tkinter.IntVar(value=DEFAULT_START_POPULATION)
+        validate_start_population = (self.register(self.validate_start_population), '%P')
         self.start_population_spinbox = tkinter.Spinbox(self.controls_frame, from_=1, to=MAX_VALUE, increment=5,
                                                         width=5, textvariable=self.start_population, validate='key',
-                                                        validatecommand=validate_entry_command)
+                                                        validatecommand=validate_start_population)
         self.food_count_label = tkinter.Label(self.controls_frame, text='Food Count:')
         self.food_count = tkinter.IntVar(value=DEFAULT_FOOD_COUNT)
+        validate_food_count = (self.register(self.validate_food_count), '%P')
         self.food_count_spinbox = tkinter.Spinbox(self.controls_frame, from_=1, to=MAX_VALUE, increment=5, width=5,
                                                   textvariable=self.food_count, validate='key',
-                                                  validatecommand=validate_entry_command)
+                                                  validatecommand=validate_food_count)
         self.place_widgets()
 
     def configure_window(self):
         self.title(APPLICATION_TITLE)
         self.geometry(f'{self.window_width}x{self.window_height}')
 
-    def play_simulation_action(self):
-        self.simulation_controller.play()
-
-    def reset_simulation_action(self):
-        self.canvas.delete('all')
-        if not self.simulation_controller.PAUSE:
-            self.simulation_controller.pause()
-        self.simulation_controller = SimulationController(self.canvas, self.start_population.get(),
-                                                          self.food_count.get())
+    def validate_start_population(self, new_value):
+        if self.is_valid_entry(new_value):
+            self.simulation_controller.start_population = int(new_value)
+            return True
+        return False
 
     @classmethod
-    def validate_entry(cls, new_value):
+    def is_valid_entry(cls, new_value):
         return new_value.isdigit() and 0 < int(new_value) <= MAX_VALUE
+
+    def validate_food_count(self, new_value):
+        if self.is_valid_entry(new_value):
+            self.simulation_controller.food_count = int(new_value)
+            return True
+        return False
 
     def exit_button_action(self):
         if self.simulation_controller.state == SimulationController.RUNNING:
@@ -88,7 +91,7 @@ class Application(tkinter.Tk):
             logging.info('Exiting...')
             self.quit()
 
-    def speed_scale_action(self, new_speed):
+    def set_speed_action(self, new_value):
         self.simulation_controller.speed = self.speed_scale.get()
 
     def place_widgets(self):
