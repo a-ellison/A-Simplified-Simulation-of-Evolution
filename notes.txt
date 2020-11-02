@@ -1,12 +1,4 @@
 Notes:
-- add radom numbers to make information fuzzy 
-- define abstract class for behaviors and define each type of behavior with a new class
-- Keep a list of objectives for creatures
+- add radom numbers to make information fuzzy
+- is home always closest point on edge or starting position?
 
-
-Simple creature phases:
-- orient --> towards food or wander 
-- act --> eat if food in reach, sleep if satisfied, duplicate if eaten 2 foods
-
-TODO:
-    - have all drawable objects derive from a common class with basic properties to be able to draw the object (size and color, maybe also shape)

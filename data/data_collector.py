@@ -1,5 +1,5 @@
-import matplotlib.pyplot as plt
-import numpy as np
+import csv
+import math
 
 
 class DataCollector(object):
@@ -10,8 +10,8 @@ class DataCollector(object):
         self.deaths = []
         self.births = []
         self.population = []
-        self.species = []
-        self.temperature = []
+        self.average_distances = []
+        # self.temperature = []
 
     # TODO: Implement plotting graph to window or file
     def plot_population(self, ax):
@@ -24,14 +24,25 @@ class DataCollector(object):
     def save(self):
         pass
 
+    def save_test(self):
+        with open('test.csv', 'w') as file:
+            writer = csv.writer(file)
+            writer.writerow([i for i in range(self.world.time)])
+            writer.writerow([i for i in self.average_distances])
+
     # TODO: Implement loading from file
     @classmethod
     def from_JSON(cls):
         pass
 
     def track(self):
-        self.population.append(self.world.get_population())
-        self.deaths.append(self.world.get_deaths())
-        self.births.append(self.world.get_births())
-        self.species.append(self.world.get_species())
-        self.temperature.append(self.world.get_temperature())
+        return
+        total = 0
+        for a in self.world.all_animals:
+            if not a.has_moved:
+                break
+            else:
+                dx = a.x - a.last_x
+                dy = a.y - a.last_y
+                total += math.sqrt(dx ** 2 + dy ** 2)
+        self.average_distances.append(total / len(self.world.all_animals))

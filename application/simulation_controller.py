@@ -22,14 +22,14 @@ class SimulationController(object):
 
     def initialize_canvas(self):
         for drawable in self.simulation.all_drawables:
-            canvas_id = self.canvas.create_circle(drawable.x, drawable.y, drawable.size, fill=drawable.color.to_hex())
+            canvas_id = self.canvas.create_circle(drawable.position.x, drawable.position.y, drawable.radius, fill=drawable.color.to_hex())
             drawable.canvas_id = canvas_id
 
     def update_canvas(self):
         all_canvas_ids = list(self.canvas.find_all())
         for drawable in self.simulation.all_drawables:
-            dx = drawable.x - drawable.last_x
-            dy = drawable.y - drawable.last_y
+            dx = drawable.position.x - drawable.last_position.x
+            dy = drawable.position.y - drawable.last_position.y
             self.canvas.move(drawable.canvas_id, dx, dy)
             all_canvas_ids.remove(drawable.canvas_id)
         for unused in all_canvas_ids:
@@ -37,8 +37,8 @@ class SimulationController(object):
         self.canvas.update()
 
     def play(self):
-        logging.info('Playing simulation')
         if self.state != SimulationController.RUNNING:
+            logging.info('Playing simulation')
             self.state = SimulationController.RUNNING
 
             def callback(this_future):
@@ -49,7 +49,6 @@ class SimulationController(object):
                     self.state = SimulationController.PLAY
                     self.play()
 
-            all = self.canvas.find_all()
             future = thread_pool.submit(self.simulation.step, self.speed)
             future.add_done_callback(callback)
 
@@ -64,3 +63,5 @@ class SimulationController(object):
         self.simulation.reset(self.start_population, self.food_count)
         self.initialize_canvas()
 
+    def save(self):
+        self.simulation.save()
