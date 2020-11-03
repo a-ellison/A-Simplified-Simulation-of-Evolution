@@ -1,8 +1,9 @@
 from models.animal import Animal
-from structs.color import Color
 from structs.point import Point
+from models.drawable import Drawable
 
 
+# abstract all_animals and all_food so that world doesn't know the concept of animals/food
 class World:
     def __init__(self, width, height):
         self.width = width
@@ -10,10 +11,10 @@ class World:
         self.time = 0
         self.all_animals = []
         self.all_food = []
+        self.config = {}
 
-    def create_animal(self, side=None, animal_class=Animal, color=Color(0, 0, 255)):
-        new_animal = animal_class.random(*self.corners, side=side, color=color)
-        self.all_animals.append(new_animal)
+    def add_animal(self, animal):
+        self.all_animals.append(animal)
 
     @property
     def all_drawables(self):
@@ -21,6 +22,10 @@ class World:
         result.extend(self.all_animals)
         result.extend(self.all_food)
         return result
+
+    @property
+    def all_active_animals(self):
+        return [a for a in self.all_animals if not a.is_asleep]
 
     @property
     def center(self):
@@ -32,7 +37,11 @@ class World:
 
     @property
     def is_asleep(self):
-        return False
+        return all([a.is_asleep for a in self.all_animals])
+
+    @property
+    def is_dead(self):
+        return not len(self.all_animals)
 
     def is_inside(self, point: Point, offset=0):
         is_x_inside = offset <= point.x <= (self.width - offset)
@@ -50,9 +59,12 @@ class World:
     def find_closest_food(self, animal: Animal):
         return animal.position.find_closest([food for food in self.all_food], get_position=lambda f: f.position)
 
-    def get_closest_edge(self, animal: Animal):
-        left = Point(animal.radius, animal.position.y)
-        top = Point(animal.position.x, animal.radius)
-        right = Point(self.width - animal.radius, animal.position.y)
-        bottom = Point(animal.position.x, self.height - animal.radius)
-        return animal.position.find_closest((left, top, right, bottom))
+    def get_closest_edge(self, drawable: Drawable):
+        left = Point(drawable.radius, drawable.position.y)
+        top = Point(drawable.position.x, drawable.radius)
+        right = Point(self.width - drawable.radius, drawable.position.y)
+        bottom = Point(drawable.position.x, self.height - drawable.radius)
+        return drawable.position.find_closest((left, top, right, bottom))
+
+    def remove_food(self, food):
+        self.all_food.remove(food)

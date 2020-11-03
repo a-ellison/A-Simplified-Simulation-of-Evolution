@@ -6,6 +6,10 @@ from models.world import World
 
 
 class Simulation:
+    ERROR = 0
+    CONTINUE = 1
+    FINISHED = 2
+
     def __init__(self, world_width, world_height, start_population, food_count):
         self.world_width = world_width
         self.world_height = world_height
@@ -14,7 +18,9 @@ class Simulation:
         self.behavior.initialize(self.world, start_population, food_count)
         self.data_collector = data_collector.DataCollector(self.world)
 
-    def step(self, speed):
+    def step(self, speed, delay=0):
+        if self.world.is_dead:
+            return self.FINISHED
         try:
             import time
             start = time.perf_counter()
@@ -22,12 +28,12 @@ class Simulation:
                 self.behavior.apply(self.world)
                 self.data_collector.track()
             duration = time.perf_counter() - start
-            if duration < 0.01:
-                time.sleep(0.1 - duration)
-            return True
+            if duration < delay:
+                time.sleep(delay - duration)
+            return self.CONTINUE
         except Exception as e:
             logging.error(str(e))
-            return False
+            return self.ERROR
 
     @property
     def all_drawables(self):
@@ -38,4 +44,4 @@ class Simulation:
         self.behavior.initialize(self.world, start_population, food_count)
 
     def save(self):
-        self.data_collector.save_test()
+        self.data_collector.save()

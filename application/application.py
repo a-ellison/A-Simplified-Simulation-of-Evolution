@@ -1,3 +1,5 @@
+import random
+import time
 import tkinter
 from application.simulation_controller import SimulationController
 import logging
@@ -24,7 +26,6 @@ MAX_VALUE = 10000
 
 # TODO: Restructure application to support
 #  multiple pages and create pages for:
-#   - settings
 #   - data analysis
 class Application(tkinter.Tk):
     def __init__(self, window_width=DEFAULT_WINDOW_WIDTH, window_height=DEFAULT_WINDOW_HEIGHT):
@@ -36,7 +37,8 @@ class Application(tkinter.Tk):
         self.canvas_height = self.window_height * 0.7
         self.canvas = tkinter.Canvas(self, width=self.canvas_width, height=self.canvas_height, bg='black')
         self.controls_frame = tkinter.Frame(self, height=200, width=150)
-        self.simulation_controller = SimulationController(self.canvas, DEFAULT_START_POPULATION, DEFAULT_FOOD_COUNT)
+        self.simulation_controller = SimulationController(self.canvas, self.canvas_width, self.canvas_height,
+                                                          DEFAULT_START_POPULATION, DEFAULT_FOOD_COUNT)
         self.play_pause_simulation_button = tkinter.Button(self.controls_frame, text='Play/Pause',
                                                            command=self.play_pause_action)
         self.reset_simulation_button = tkinter.Button(self.controls_frame, text='Reset',
@@ -58,6 +60,11 @@ class Application(tkinter.Tk):
         self.food_count_spinbox = tkinter.Spinbox(self.controls_frame, from_=0, to=MAX_VALUE, increment=5, width=5,
                                                   textvariable=self.food_count, validate='key',
                                                   validatecommand=validate_food_count)
+        milliseconds = int(time.time() * 1000)
+        self.seed = -1
+        validate_seed = (self.register(self.validate_seed), '%P')
+        self.seed_spinbox = tkinter.Entry(self.controls_frame, width=5, textvariable=self.seed,
+                                          validatecommand=validate_seed)
         self.set_keybinds()
         self.place_widgets()
 
@@ -68,8 +75,10 @@ class Application(tkinter.Tk):
     def play_pause_action(self, *args):
         if self.simulation_controller.state == SimulationController.PAUSE:
             self.simulation_controller.play()
+            logging.info('Playing simulation')
         else:
             self.simulation_controller.pause()
+            logging.info('Pausing simulation')
 
     def validate_start_population(self, new_value):
         if self.is_valid_entry(new_value):
@@ -77,9 +86,17 @@ class Application(tkinter.Tk):
             return True
         return False
 
+    def validate_seed(self, new_value):
+        if self.is_valid_entry(new_value):
+            random.seed(new_value)
+            return True
+        else:
+            self.seed.set(-1)
+            return False
+
     @classmethod
     def is_valid_entry(cls, new_value):
-        return new_value.isdigit() and 0 <= int(new_value) <= MAX_VALUE
+        return new_value.isdigit() and 0 <= int(new_value)
 
     def validate_food_count(self, new_value):
         if self.is_valid_entry(new_value):

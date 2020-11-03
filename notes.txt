@@ -1,4 +1,5 @@
 Notes:
 - add radom numbers to make information fuzzy
-- is home always closest point on edge or starting position?
+- relation between constants for sizes, energy cost, wandering offset, etc.?
+
 

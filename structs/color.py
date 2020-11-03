@@ -1,4 +1,4 @@
-from random import randint
+import random
 
 
 class Color(object):
@@ -13,11 +13,10 @@ class Color(object):
 
     @classmethod
     def random(cls):
-        r = randint(0, 255)
-        g = randint(0, 255)
-        b = randint(0, 255)
-        color = Color(r, g, b)
-        return color
+        r = random.randint(0, 255)
+        g = random.randint(0, 255)
+        b = random.randint(0, 255)
+        return Color(r, g, b)
 
     # uses Tkinter color formatting
     def to_hex(self):

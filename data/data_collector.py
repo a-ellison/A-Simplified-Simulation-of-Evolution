@@ -1,17 +1,15 @@
 import csv
 import math
+import json
+from datetime import datetime
 
 
+# TODO: display deaths and births
 class DataCollector(object):
     def __init__(self, world):
         self.world = world
-        self.max_t = 0
-        self.dt = 1
-        self.deaths = []
-        self.births = []
+        self.days = []
         self.population = []
-        self.average_distances = []
-        # self.temperature = []
 
     # TODO: Implement plotting graph to window or file
     def plot_population(self, ax):
@@ -22,27 +20,17 @@ class DataCollector(object):
 
     # TODO: Implement saving to file
     def save(self):
-        pass
-
-    def save_test(self):
-        with open('test.csv', 'w') as file:
-            writer = csv.writer(file)
-            writer.writerow([i for i in range(self.world.time)])
-            writer.writerow([i for i in self.average_distances])
-
-    # TODO: Implement loading from file
-    @classmethod
-    def from_JSON(cls):
-        pass
+        data = {
+            'time': self.world.time,
+            'days': self.days,
+            'population': self.population,
+        }
+        now = datetime.now()
+        filename = f'{now.hour}h-{now.minute}m-{now.second}s.json'
+        with open(filename, 'w+') as json_file:
+            json.dump(data, json_file)
 
     def track(self):
-        return
-        total = 0
-        for a in self.world.all_animals:
-            if not a.has_moved:
-                break
-            else:
-                dx = a.x - a.last_x
-                dy = a.y - a.last_y
-                total += math.sqrt(dx ** 2 + dy ** 2)
-        self.average_distances.append(total / len(self.world.all_animals))
+        self.population.append(len(self.world.all_animals))
+        if self.world.is_asleep:
+            self.days.append(self.world.time)

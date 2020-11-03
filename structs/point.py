@@ -3,6 +3,11 @@ import random
 
 
 class Point:
+    TOP = 0
+    RIGHT = 1
+    BOTTOM = 2
+    LEFT = 3
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -27,8 +32,8 @@ class Point:
 
     def angle_to(self, target):
         dx = target.x - self.x
-        if dx == 0:
-            return 0
+        # if dx == 0:
+        #     return 0
         dy = target.y - self.y
         return math.atan2(dy, dx)
 
@@ -44,16 +49,18 @@ class Point:
 
     @classmethod
     def random(cls, min_coordinate, max_coordinate, side=None):
-        if side == 'top':
+        min_coordinate = Point(math.ceil(min_coordinate.x), math.ceil(min_coordinate.y))
+        max_coordinate = Point(math.floor(max_coordinate.x), math.floor(max_coordinate.y))
+        if side == Point.TOP:
             x = random.randint(min_coordinate.x, max_coordinate.x)
             y = min_coordinate.y
-        elif side == 'right':
+        elif side == Point.RIGHT:
             x = max_coordinate.x
             y = random.randint(min_coordinate.y, max_coordinate.y)
-        elif side == 'bottom':
+        elif side == Point.BOTTOM:
             x = random.randint(min_coordinate.x, max_coordinate.x)
             y = max_coordinate.y
-        elif side == 'left':
+        elif side == Point.LEFT:
             x = min_coordinate.x
             y = random.randint(min_coordinate.y, max_coordinate.y)
         else:
