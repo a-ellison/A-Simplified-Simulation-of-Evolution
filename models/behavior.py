@@ -53,7 +53,7 @@ class Behavior:
     def apply(cls, world: World):
         if world.is_asleep:
             cls.reset_day(world)
-            logging.debug('A day has passed...')
+            logging.info('A day has passed...')
         else:
             cls.orient(world)
             cls.move(world)

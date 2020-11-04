@@ -4,7 +4,7 @@ import tkinter
 from application.simulation_controller import SimulationController
 import logging
 
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)-8s %(name)-15s %(message)s', filemode='w')
 
 
@@ -60,7 +60,6 @@ class Application(tkinter.Tk):
         self.food_count_spinbox = tkinter.Spinbox(self.controls_frame, from_=0, to=MAX_VALUE, increment=5, width=5,
                                                   textvariable=self.food_count, validate='key',
                                                   validatecommand=validate_food_count)
-        milliseconds = int(time.time() * 1000)
         self.seed = -1
         validate_seed = (self.register(self.validate_seed), '%P')
         self.seed_spinbox = tkinter.Entry(self.controls_frame, width=5, textvariable=self.seed,

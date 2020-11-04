@@ -1,7 +1,7 @@
 import logging
 
 from models import behavior
-from data import data_collector
+from application import data_collector
 from models.world import World
 
 
@@ -44,4 +44,5 @@ class Simulation:
         self.behavior.initialize(self.world, start_population, food_count)
 
     def save(self):
-        self.data_collector.save()
+        if self.world.time > 0:
+            self.data_collector.save()
