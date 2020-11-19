@@ -37,7 +37,7 @@ class World:
 
     @property
     def is_asleep(self):
-        return all([a.is_asleep for a in self.all_animals])
+        return all([a.is_asleep for a in self.all_animals]) or (len(self.all_food) == 0 and all([a.is_asleep for a in self.all_animals if a.foods_eaten > 0]))
 
     @property
     def is_dead(self):
@@ -52,9 +52,6 @@ class World:
         self.time = 0
         self.all_animals = []
         self.all_food = []
-
-    def filter_animals(self):
-        self.all_animals = [a for a in self.all_animals if a.is_alive]
 
     def find_closest_food(self, animal: Animal):
         return animal.position.find_closest([food for food in self.all_food], get_position=lambda f: f.position)

@@ -1,11 +1,12 @@
 import random
-import time
 import tkinter
 from application.simulation_controller import SimulationController
 import logging
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)-8s %(name)-15s %(message)s', filemode='w')
+
+random.seed(10)
 
 
 def _create_circle(self, x, y, r, **kwargs):
@@ -87,7 +88,7 @@ class Application(tkinter.Tk):
 
     def validate_seed(self, new_value):
         if self.is_valid_entry(new_value):
-            random.seed(new_value)
+            # random.seed(new_value)
             return True
         else:
             self.seed.set(-1)

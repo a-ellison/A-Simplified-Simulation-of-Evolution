@@ -1,5 +1,3 @@
-import logging
-
 from models.drawable import Drawable
 from structs.color import Color
 
@@ -15,8 +13,8 @@ SPEED_MUTATION = 0.5
 MIN_SIGHT_RANGE = 4
 MAX_SIGHT_RANGE = 20
 SIGHT_RANGE_MUTATION = 2
-MOVEMENT_COST_FACTOR = 0.11
-MAX_ENERGY_FACTOR = 4000
+MOVEMENT_COST_FACTOR = 0.22
+MAX_ENERGY_FACTOR = 1000
 
 MIN_EDIBLE_SIZE = 200 / 10 ** 2
 MAX_EDIBLE_SIZE = 300 / 10 ** 2
@@ -26,11 +24,11 @@ class Animal(Drawable):
     ASLEEP = 0
     ACTIVE = 1
 
-    def __init__(self, position: Point, radius, color: Color, speed, sight_range):
-        super().__init__(position, radius, color)
+    def __init__(self, position: Point, radius, speed, sight_range):
+        super().__init__(position, radius, Animal.calculate_color(radius, speed, sight_range))
         self.age = 0
         self.speed = speed
-        self.max_energy = radius * MAX_ENERGY_FACTOR
+        self.max_energy = (radius ** 3) * MAX_ENERGY_FACTOR
         self.energy = self.max_energy
         self.sight_range = sight_range
         self.objective = None
@@ -50,13 +48,9 @@ class Animal(Drawable):
         self.objective = None
 
     @property
-    def mass(self):
-        return self.radius ** 3
-
-    @property
     def step_cost(self):
         distance_moved = self.position.distance_to(self.last_position)
-        movement_cost = 0.5 * self.mass * (distance_moved ** 2)
+        movement_cost = (self.radius ** 3) * (distance_moved ** 2)
         return movement_cost * MOVEMENT_COST_FACTOR + self.sight_range
 
     def apply_step_cost(self):
@@ -110,7 +104,7 @@ class Animal(Drawable):
                                                             SIGHT_RANGE_MUTATION)
         position = self.position.move_by(self.radius)
         color = Animal.calculate_color(mutated_radius, mutated_speed, mutated_sight_range)
-        return Animal(position, mutated_radius, color, mutated_speed, mutated_sight_range)
+        return Animal(position, mutated_radius, mutated_speed, mutated_sight_range)
 
     @property
     def traits(self):
@@ -123,15 +117,10 @@ class Animal(Drawable):
 
     @classmethod
     def calculate_color(cls, radius, speed, sight_range):
-        r = int((255 / MAX_RADIUS) * radius)
-        g = int((255 / MAX_SPEED) * speed)
-        b = int((255 / MAX_SIGHT_RANGE) * sight_range)
+        r = int((255 / (MAX_RADIUS - MIN_RADIUS)) * (radius - MIN_RADIUS))
+        g = int((255 / (MAX_SPEED - MIN_SPEED)) * (speed - MIN_SPEED))
+        b = int((255 / (MAX_SIGHT_RANGE - MIN_SIGHT_RANGE)) * (sight_range - MIN_SIGHT_RANGE))
         return Color(r, g, b)
-
-    @classmethod
-    def calculate_max_energy(cls, radius):
-        # TODO: radius should be raised to power of 3
-        return radius * MAX_ENERGY_FACTOR
 
     @classmethod
     def random(cls, min_coordinate: Point, max_coordinate: Point, side=None, **kwargs):
@@ -145,11 +134,9 @@ class Animal(Drawable):
         if sight_range is None:
             sight_range = helper_functions.random_decimal(MIN_SIGHT_RANGE, MAX_SIGHT_RANGE)
         color = kwargs.get('color')
-        if color is None:
-            color = cls.calculate_color(radius, speed, sight_range)
         position = kwargs.get('position')
         if position is None:
             min_coordinate = min_coordinate.move_by(radius)
             max_coordinate = max_coordinate.move_by(-radius)
             position = Point.random(min_coordinate, max_coordinate, side)
-        return Animal(position, radius, color, speed, sight_range)
+        return Animal(position, radius, speed, sight_range)

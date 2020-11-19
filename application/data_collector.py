@@ -1,4 +1,6 @@
 import json
+import os
+
 import matplotlib.pyplot as plt
 from datetime import datetime
 
@@ -24,12 +26,13 @@ class DataCollector(object):
         ax.plot(self.days, self.population)
         ax.set_title('Population over time')
         fig.savefig(f'{self.folder}/{self.name}-population.png')
+        plt.close(fig)
 
     def plot_traits(self):
         fig, ax = plt.subplots()
-        relative_radius_average = self.relative_average(self.average_radius, animal.MAX_RADIUS)
-        relative_speed_average = self.relative_average(self.average_speed, animal.MAX_SPEED)
-        relative_sight_range_average = self.relative_average(self.average_sight_range, animal.MAX_SIGHT_RANGE)
+        relative_radius_average = self.relative_average(self.average_radius, animal.MIN_RADIUS, animal.MAX_RADIUS)
+        relative_speed_average = self.relative_average(self.average_speed, animal.MIN_SPEED, animal.MAX_SPEED)
+        relative_sight_range_average = self.relative_average(self.average_sight_range, animal.MIN_SIGHT_RANGE, animal.MAX_SIGHT_RANGE)
         ax.plot(self.days, relative_radius_average, label='radius')
         ax.plot(self.days, relative_speed_average, label='speed')
         ax.plot(self.days, relative_sight_range_average, label='sight range')
@@ -38,12 +41,15 @@ class DataCollector(object):
         ax.set_ylim(min_y, 100)
         ax.legend()
         fig.savefig(f'{self.folder}/{self.name}-traits.png')
+        plt.close(fig)
 
     @classmethod
-    def relative_average(cls, averages_list, max_value):
-        return [(avg / max_value) * 100 for avg in averages_list]
+    def relative_average(cls, averages_list, min_value, max_value):
+        return [((avg - min_value) / (max_value - min_value)) * 100 for avg in averages_list]
 
     def save(self):
+        if os.path.isdir(self.folder) is False:
+            os.mkdir(self.folder)
         self.plot_population()
         self.plot_traits()
         data = {
@@ -55,7 +61,7 @@ class DataCollector(object):
             json.dump(data, json_file)
 
     def track(self):
-        if self.world.is_asleep:
+        if self.world.is_asleep and not self.world.is_dead:
             self.population.append(len(self.world.all_animals))
             self.days.append(len(self.days) + 1)
             self.average_radius.append(self.average([a.radius for a in self.world.all_animals]))

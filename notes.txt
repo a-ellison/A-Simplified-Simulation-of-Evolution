@@ -8,6 +8,7 @@ High prio:
 3. prey can survive from environment 
 
 Primer sim:
+- only increment age after 1 day
 - add radom numbers to make information fuzzy
 - should there be relation between constants for sizes, energy cost, wandering offset, etc.?
 - more ambiguity of traits

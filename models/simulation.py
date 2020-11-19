@@ -21,19 +21,15 @@ class Simulation:
     def step(self, speed, delay=0):
         if self.world.is_dead:
             return self.FINISHED
-        try:
-            import time
-            start = time.perf_counter()
-            for i in range(speed):
-                self.behavior.apply(self.world)
-                self.data_collector.track()
-            duration = time.perf_counter() - start
-            if duration < delay:
-                time.sleep(delay - duration)
-            return self.CONTINUE
-        except Exception as e:
-            logging.error(str(e))
-            return self.ERROR
+        import time
+        start = time.perf_counter()
+        for i in range(speed):
+            self.behavior.apply(self.world)
+            self.data_collector.track()
+        duration = time.perf_counter() - start
+        if duration < delay:
+            time.sleep(delay - duration)
+        return self.CONTINUE
 
     @property
     def all_drawables(self):

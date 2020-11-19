@@ -1,9 +1,8 @@
-import concurrent.futures
-import tkinter
-
+import helper_functions
 from models.simulation import Simulation
+from structs import point
 
-thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+thread_pool = helper_functions.ThreadPoolExecutorStackTraced(max_workers=1)
 
 
 class SimulationController(object):
@@ -11,7 +10,7 @@ class SimulationController(object):
     PLAY = 1
     RUNNING = 2
 
-    def __init__(self, canvas: tkinter.Canvas, canvas_width, canvas_height, start_population, food_count):
+    def __init__(self, canvas, canvas_width, canvas_height, start_population, food_count):
         self.canvas = canvas
         self.canvas_width = canvas_width
         self.canvas_height = canvas_height
@@ -26,12 +25,14 @@ class SimulationController(object):
         all_canvas_ids = list(self.canvas.find_all())
         for drawable in self.simulation.all_drawables:
             if drawable.canvas_id is None:
-                drawable.canvas_id = self.canvas.create_circle(drawable.position.x, drawable.position.y, drawable.radius,
+                drawable.canvas_id = self.canvas.create_circle(drawable.position.x, drawable.position.y,
+                                                               drawable.radius,
                                                                fill=drawable.color.to_hex())
             else:
-                dx = drawable.position.x - drawable.last_position.x
-                dy = drawable.position.y - drawable.last_position.y
+                dx = drawable.position.x - drawable.last_drawn_position.x
+                dy = drawable.position.y - drawable.last_drawn_position.y
                 self.canvas.move(drawable.canvas_id, dx, dy)
+                drawable.last_drawn_position = point.Point(drawable.position.x, drawable.position.y)
                 all_canvas_ids.remove(drawable.canvas_id)
         for unused in all_canvas_ids:
             self.canvas.delete(unused)
@@ -42,9 +43,11 @@ class SimulationController(object):
             self.state = SimulationController.RUNNING
 
             def callback(this_future):
-                if this_future._result == Simulation.ERROR:
-                    raise BaseException('An error has ocurred: ' + str(this_future._exception))
-                elif this_future._result == Simulation.FINISHED:
+                try:
+                    result = this_future.result()
+                except Exception:
+                    raise
+                if result == Simulation.FINISHED:
                     self.pause()
                     self.show_message('The simulation has finished')
                 else:

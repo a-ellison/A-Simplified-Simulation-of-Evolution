@@ -52,6 +52,7 @@ class Behavior:
     @classmethod
     def apply(cls, world: World):
         if world.is_asleep:
+            world.all_animals = [a for a in world.all_animals if a.is_asleep]
             cls.reset_day(world)
             logging.info('A day has passed...')
         else:
@@ -141,10 +142,11 @@ class Behavior:
         for animal in world.all_animals:
             animal.age += 1
             animal.apply_step_cost()
-        world.filter_animals()
+        world.all_animals = [a for a in world.all_animals if a.is_alive]
 
     @classmethod
     def reset_day(cls, world: World):
+        world.all_animals = [a for a in world.all_animals if a.is_asleep]
         cls.generate_food(world, world.config['food_count'])
         for animal in world.all_animals:
             if not animal.is_hungry:
