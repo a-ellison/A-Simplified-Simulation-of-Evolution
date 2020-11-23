@@ -10,16 +10,16 @@ class SimulationController(object):
     PLAY = 1
     RUNNING = 2
 
-    def __init__(self, canvas, canvas_width, canvas_height, start_population, food_count):
+    def __init__(self, canvas, canvas_width, canvas_height, speed_var, seed_var, start_population_var, food_count_var):
         self.canvas = canvas
         self.canvas_width = canvas_width
         self.canvas_height = canvas_height
         self.state = SimulationController.PAUSE
-        self.speed = 1
-        self.start_population = start_population
-        self.food_count = food_count
-        self.simulation = Simulation(self.canvas_width, self.canvas_height, start_population, food_count)
-        self.update_canvas()
+        self.speed_var = speed_var
+        self.seed_var = seed_var
+        self.start_population_var = start_population_var
+        self.food_count_var = food_count_var
+        self.reset()
 
     def update_canvas(self):
         all_canvas_ids = list(self.canvas.find_all())
@@ -56,8 +56,7 @@ class SimulationController(object):
                         self.state = SimulationController.PLAY
                         self.play()
 
-            future = thread_pool.submit(self.simulation.step, self.speed)
-            # future = thread_pool.submit(self.simulation.step, self.speed, 0.1)
+            future = thread_pool.submit(self.simulation.step, self.speed_var.get())
             future.add_done_callback(callback)
 
     def pause(self):
@@ -67,7 +66,7 @@ class SimulationController(object):
         self.canvas.delete('all')
         if self.state != SimulationController.PAUSE:
             self.pause()
-        self.simulation.reset(self.start_population, self.food_count)
+        self.simulation = Simulation(self.canvas_width, self.canvas_height, self.seed_var.get(), self.start_population_var.get(), self.food_count_var.get())
         self.update_canvas()
 
     def save(self):

@@ -1,7 +1,10 @@
 import random
+import time
 import tkinter
 from application.simulation_controller import SimulationController
 import logging
+
+from models import simulation
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)-8s %(name)-15s %(message)s', filemode='w')
@@ -37,40 +40,49 @@ class Application(tkinter.Tk):
         self.canvas_width = self.window_width * 0.7
         self.canvas_height = self.window_height * 0.7
         self.canvas = tkinter.Canvas(self, width=self.canvas_width, height=self.canvas_height, bg='black')
-        self.controls_frame = tkinter.Frame(self, height=200, width=150)
-        self.simulation_controller = SimulationController(self.canvas, self.canvas_width, self.canvas_height,
-                                                          DEFAULT_START_POPULATION, DEFAULT_FOOD_COUNT)
+        self.controls_frame = tkinter.Frame(self)
+        # Configuration
+        self.speed_label = tkinter.Label(self.controls_frame, text='Speed:')
+        self.speeds = tkinter.Frame(self.controls_frame)
+        self.speed = tkinter.IntVar(value=simulation.Simulation.NORMAL)
+        self.slow_radiobutton = tkinter.Radiobutton(self.speeds, text='Slow',
+                                                    variable=self.speed, value=simulation.Simulation.SLOW)
+        self.normal_radiobutton = tkinter.Radiobutton(self.speeds, text='Normal',
+                                                      variable=self.speed, value=simulation.Simulation.NORMAL)
+        self.fast_radiobutton = tkinter.Radiobutton(self.speeds, text='Fast',
+                                                    variable=self.speed, value=simulation.Simulation.FAST)
+        validate_entry = (self.register(self.is_valid_entry), '%P')
+        self.seed = tkinter.IntVar(value=int(time.time()))
+        self.seed_label = tkinter.Label(self.controls_frame, text='Random seed:')
+        self.seed_entry = tkinter.Entry(self.controls_frame, width=10, textvariable=self.seed,
+                                        validatecommand=validate_entry, command=self.set_seed)
+        self.start_population_label = tkinter.Label(self.controls_frame, text='Start Population:')
+        self.start_population = tkinter.IntVar(value=DEFAULT_START_POPULATION)
+        self.start_population_spinbox = tkinter.Spinbox(self.controls_frame, from_=0, to=MAX_VALUE, increment=5,
+                                                        width=5, textvariable=self.start_population, validate='key',
+                                                        validatecommand=validate_entry)
+        self.food_count_label = tkinter.Label(self.controls_frame, text='Food Count:')
+        self.food_count = tkinter.IntVar(value=DEFAULT_FOOD_COUNT)
+        self.food_count_spinbox = tkinter.Spinbox(self.controls_frame, from_=0, to=MAX_VALUE, increment=5, width=5,
+                                                  textvariable=self.food_count, validate='key',
+                                                  validatecommand=validate_entry)
+        self.simulation_controller = SimulationController(self.canvas, self.canvas_width, self.canvas_height, self.speed, self.seed,
+                                                          self.start_population, self.food_count)
+        # Control
         self.play_pause_simulation_button = tkinter.Button(self.controls_frame, text='Play/Pause',
                                                            command=self.play_pause_action)
         self.reset_simulation_button = tkinter.Button(self.controls_frame, text='Reset',
                                                       command=self.simulation_controller.reset)
         self.exit_button = tkinter.Button(self.controls_frame, text='Exit', command=self.exit_action)
-        self.speed_label = tkinter.Label(self.controls_frame, text='Speed:')
-        self.speed = tkinter.IntVar(value=1)
-        self.speed_scale = tkinter.Scale(self.controls_frame, variable=self.speed, from_=1, to=100,
-                                         command=self.set_speed_action, orient=tkinter.HORIZONTAL)
-        self.start_population_label = tkinter.Label(self.controls_frame, text='Start Population:')
-        self.start_population = tkinter.IntVar(value=DEFAULT_START_POPULATION)
-        validate_start_population = (self.register(self.validate_start_population), '%P')
-        self.start_population_spinbox = tkinter.Spinbox(self.controls_frame, from_=0, to=MAX_VALUE, increment=5,
-                                                        width=5, textvariable=self.start_population, validate='key',
-                                                        validatecommand=validate_start_population)
-        self.food_count_label = tkinter.Label(self.controls_frame, text='Food Count:')
-        self.food_count = tkinter.IntVar(value=DEFAULT_FOOD_COUNT)
-        validate_food_count = (self.register(self.validate_food_count), '%P')
-        self.food_count_spinbox = tkinter.Spinbox(self.controls_frame, from_=0, to=MAX_VALUE, increment=5, width=5,
-                                                  textvariable=self.food_count, validate='key',
-                                                  validatecommand=validate_food_count)
-        self.seed = -1
-        validate_seed = (self.register(self.validate_seed), '%P')
-        self.seed_spinbox = tkinter.Entry(self.controls_frame, width=5, textvariable=self.seed,
-                                          validatecommand=validate_seed)
         self.set_keybinds()
         self.place_widgets()
 
     def configure_window(self):
         self.title(APPLICATION_TITLE)
         self.geometry(f'{self.window_width}x{self.window_height}')
+
+    def set_seed(self):
+        random.seed(self.seed.get())
 
     def play_pause_action(self, *args):
         if self.simulation_controller.state == SimulationController.PAUSE:
@@ -80,29 +92,9 @@ class Application(tkinter.Tk):
             self.simulation_controller.pause()
             logging.info('Pausing simulation')
 
-    def validate_start_population(self, new_value):
-        if self.is_valid_entry(new_value):
-            self.simulation_controller.start_population = int(new_value)
-            return True
-        return False
-
-    def validate_seed(self, new_value):
-        if self.is_valid_entry(new_value):
-            # random.seed(new_value)
-            return True
-        else:
-            self.seed.set(-1)
-            return False
-
     @classmethod
     def is_valid_entry(cls, new_value):
         return new_value.isdigit() and 0 <= int(new_value)
-
-    def validate_food_count(self, new_value):
-        if self.is_valid_entry(new_value):
-            self.simulation_controller.food_count = int(new_value)
-            return True
-        return False
 
     def exit_action(self, *args):
         if self.simulation_controller.state == SimulationController.RUNNING:
@@ -113,9 +105,6 @@ class Application(tkinter.Tk):
             self.simulation_controller.save()
             logging.info('Exiting...')
             self.quit()
-
-    def set_speed_action(self, new_value):
-        self.simulation_controller.speed = self.speed_scale.get()
 
     def set_keybinds(self):
         self.bind('<space>', self.play_pause_action)
@@ -128,9 +117,14 @@ class Application(tkinter.Tk):
         self.reset_simulation_button.grid(column=1, row=0, rowspan=2)
         self.exit_button.grid(column=2, row=0, rowspan=2)
         self.speed_label.grid(column=3, row=0)
-        self.speed_scale.grid(column=3, row=1)
-        self.start_population_label.grid(column=4, row=0)
-        self.start_population_spinbox.grid(column=4, row=1)
-        self.food_count_label.grid(column=5, row=0)
-        self.food_count_spinbox.grid(column=5, row=1)
+        self.slow_radiobutton.pack(anchor=tkinter.W)
+        self.normal_radiobutton.pack(anchor=tkinter.W)
+        self.fast_radiobutton.pack(anchor=tkinter.W)
+        self.speeds.grid(column=3, row=1)
+        self.seed_label.grid(column=4, row=0)
+        self.seed_entry.grid(column=4, row=1)
+        self.start_population_label.grid(column=0, row=3)
+        self.start_population_spinbox.grid(column=0, row=4)
+        self.food_count_label.grid(column=1, row=3)
+        self.food_count_spinbox.grid(column=1, row=4)
         self.controls_frame.place(x=WIDGET_SPACING, y=self.canvas_height + WIDGET_SPACING)

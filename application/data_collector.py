@@ -53,6 +53,7 @@ class DataCollector(object):
         self.plot_population()
         self.plot_traits()
         data = {
+            'seed': self.world.seed,
             'time': self.world.time,
             'days': self.days,
             'population': self.population,

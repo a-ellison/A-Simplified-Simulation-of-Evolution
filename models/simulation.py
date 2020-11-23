@@ -10,11 +10,15 @@ class Simulation:
     CONTINUE = 1
     FINISHED = 2
 
-    def __init__(self, world_width, world_height, start_population, food_count):
+    SLOW = 3
+    NORMAL = 4
+    FAST = 5
+
+    def __init__(self, world_width, world_height, seed, start_population, food_count):
         self.world_width = world_width
         self.world_height = world_height
         self.behavior = behavior.Behavior
-        self.world = World(self.world_width, self.world_height)
+        self.world = World(self.world_width, self.world_height, seed)
         self.behavior.initialize(self.world, start_population, food_count)
         self.data_collector = data_collector.DataCollector(self.world)
 
@@ -34,10 +38,6 @@ class Simulation:
     @property
     def all_drawables(self):
         return self.world.all_drawables
-
-    def reset(self, start_population, food_count):
-        self.world.wipe()
-        self.behavior.initialize(self.world, start_population, food_count)
 
     def save(self):
         if self.world.time > 0:
