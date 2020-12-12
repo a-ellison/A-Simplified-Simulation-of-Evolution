@@ -2,6 +2,10 @@ import concurrent.futures
 import random
 import sys
 import traceback
+from enum import Enum
+
+Speed = Enum('Speed', 'SLOW NORMAL FAST')
+State = Enum('State', 'PAUSE RUNNING PLAY ERROR FINISHED CONTINUE')
 
 
 # code from https://stackoverflow.com/questions/19309514/how-to-get-correct-line-number-where-exception-was-thrown-using-concurrent-futur/24457608#24457608

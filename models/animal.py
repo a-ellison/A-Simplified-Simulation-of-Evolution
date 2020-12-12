@@ -1,7 +1,7 @@
 from models.drawable import Drawable
 from structs.color import Color
 
-import helper_functions
+import helpers
 from structs.point import Point
 
 MIN_RADIUS = 4
@@ -98,9 +98,9 @@ class Animal(Drawable):
         self.foods_eaten = 0
 
     def mutate(self):
-        mutated_radius = helper_functions.mutate_value(MIN_RADIUS, MAX_RADIUS, self.radius, RADIUS_MUTATION)
-        mutated_speed = helper_functions.mutate_value(MIN_SPEED, MAX_SPEED, self.speed, SPEED_MUTATION)
-        mutated_sight_range = helper_functions.mutate_value(MIN_SIGHT_RANGE, MAX_SIGHT_RANGE, self.sight_range,
+        mutated_radius = helpers.mutate_value(MIN_RADIUS, MAX_RADIUS, self.radius, RADIUS_MUTATION)
+        mutated_speed = helpers.mutate_value(MIN_SPEED, MAX_SPEED, self.speed, SPEED_MUTATION)
+        mutated_sight_range = helpers.mutate_value(MIN_SIGHT_RANGE, MAX_SIGHT_RANGE, self.sight_range,
                                                             SIGHT_RANGE_MUTATION)
         position = self.position.move_by(self.radius)
         color = Animal.calculate_color(mutated_radius, mutated_speed, mutated_sight_range)
@@ -126,13 +126,13 @@ class Animal(Drawable):
     def random(cls, min_coordinate: Point, max_coordinate: Point, side=None, **kwargs):
         radius = kwargs.get('radius')
         if radius is None:
-            radius = helper_functions.random_decimal(MIN_RADIUS, MAX_RADIUS)
+            radius = helpers.random_decimal(MIN_RADIUS, MAX_RADIUS)
         speed = kwargs.get('speed')
         if speed is None:
-            speed = helper_functions.random_decimal(MIN_SPEED, MAX_SPEED)
+            speed = helpers.random_decimal(MIN_SPEED, MAX_SPEED)
         sight_range = kwargs.get('sight_range')
         if sight_range is None:
-            sight_range = helper_functions.random_decimal(MIN_SIGHT_RANGE, MAX_SIGHT_RANGE)
+            sight_range = helpers.random_decimal(MIN_SIGHT_RANGE, MAX_SIGHT_RANGE)
         color = kwargs.get('color')
         position = kwargs.get('position')
         if position is None:

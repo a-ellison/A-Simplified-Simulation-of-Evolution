@@ -2,12 +2,13 @@ import logging
 import math
 import random
 
+import helpers
+from helpers import Speed
 from models.drawable import Drawable
 from models.animal import Animal
 from models import animal
 from models.world import World
 from structs.color import Color
-import helper_functions
 from structs.point import Point
 
 
@@ -45,21 +46,27 @@ class Behavior:
             min_coordinate = Point(int(world.width / 6), int(world.height / 6))
             max_coordinate = Point(int(world.width * 5 / 6), int(world.height * 5 / 6))
             position = Point.random(min_coordinate, max_coordinate)
-            radius = helper_functions.random_decimal(animal.MAX_EDIBLE_SIZE, animal.MAX_EDIBLE_SIZE)
+            radius = helpers.random_decimal(animal.MAX_EDIBLE_SIZE, animal.MAX_EDIBLE_SIZE)
             food = Edible(position, radius, Color(255, 255, 255))
             world.all_food.append(food)
 
     @classmethod
-    def apply(cls, world: World):
+    def apply(cls, world: World, speed):
         if world.is_asleep:
             world.all_animals = [a for a in world.all_animals if a.is_asleep]
             cls.reset_day(world)
             logging.info('A day has passed...')
         else:
+            import time
+            delay = 0.01 if speed == Speed.SLOW else 0
+            start = time.perf_counter()
             cls.orient(world)
             cls.move(world)
             cls.act(world)
             cls.reset_step(world)
+            duration = time.perf_counter() - start
+            if duration < delay:
+                time.sleep(delay - duration)
         world.time += 1
 
     @classmethod

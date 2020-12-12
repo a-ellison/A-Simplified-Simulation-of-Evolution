@@ -1,9 +1,9 @@
 import random
-import time
 import tkinter
 from application.simulation_controller import SimulationController
 import logging
 
+from helpers import Speed, State
 from models import simulation
 
 logging.basicConfig(level=logging.INFO,
@@ -44,18 +44,19 @@ class Application(tkinter.Tk):
         # Configuration
         self.speed_label = tkinter.Label(self.controls_frame, text='Speed:')
         self.speeds = tkinter.Frame(self.controls_frame)
-        self.speed = tkinter.IntVar(value=simulation.Simulation.NORMAL)
+        self.speed = tkinter.IntVar(value=Speed.NORMAL.value)
         self.slow_radiobutton = tkinter.Radiobutton(self.speeds, text='Slow',
-                                                    variable=self.speed, value=simulation.Simulation.SLOW)
+                                                    variable=self.speed, value=Speed.SLOW.value)
         self.normal_radiobutton = tkinter.Radiobutton(self.speeds, text='Normal',
-                                                      variable=self.speed, value=simulation.Simulation.NORMAL)
+                                                      variable=self.speed, value=Speed.NORMAL.value)
         self.fast_radiobutton = tkinter.Radiobutton(self.speeds, text='Fast',
-                                                    variable=self.speed, value=simulation.Simulation.FAST)
-        validate_entry = (self.register(self.is_valid_entry), '%P')
-        self.seed = tkinter.IntVar(value=int(time.time()))
+                                                    variable=self.speed, value=Speed.FAST.value)
+        validate_seed = (self.register(self.is_valid_seed), '%P')
+        self.seed = tkinter.StringVar(value='')
         self.seed_label = tkinter.Label(self.controls_frame, text='Random seed:')
-        self.seed_entry = tkinter.Entry(self.controls_frame, width=10, textvariable=self.seed,
-                                        validatecommand=validate_entry, command=self.set_seed)
+        self.seed_entry = tkinter.Entry(self.controls_frame, width=10, textvariable=self.seed, validate='key',
+                                        validatecommand=validate_seed)
+        validate_entry = (self.register(self.is_valid_entry), '%P')
         self.start_population_label = tkinter.Label(self.controls_frame, text='Start Population:')
         self.start_population = tkinter.IntVar(value=DEFAULT_START_POPULATION)
         self.start_population_spinbox = tkinter.Spinbox(self.controls_frame, from_=0, to=MAX_VALUE, increment=5,
@@ -72,7 +73,7 @@ class Application(tkinter.Tk):
         self.play_pause_simulation_button = tkinter.Button(self.controls_frame, text='Play/Pause',
                                                            command=self.play_pause_action)
         self.reset_simulation_button = tkinter.Button(self.controls_frame, text='Reset',
-                                                      command=self.simulation_controller.reset)
+                                                      command=self.simulation_controller.setup)
         self.exit_button = tkinter.Button(self.controls_frame, text='Exit', command=self.exit_action)
         self.set_keybinds()
         self.place_widgets()
@@ -81,11 +82,8 @@ class Application(tkinter.Tk):
         self.title(APPLICATION_TITLE)
         self.geometry(f'{self.window_width}x{self.window_height}')
 
-    def set_seed(self):
-        random.seed(self.seed.get())
-
     def play_pause_action(self, *args):
-        if self.simulation_controller.state == SimulationController.PAUSE:
+        if self.simulation_controller.state == State.PAUSE:
             self.simulation_controller.play()
             logging.info('Playing simulation')
         else:
@@ -96,8 +94,12 @@ class Application(tkinter.Tk):
     def is_valid_entry(cls, new_value):
         return new_value.isdigit() and 0 <= int(new_value)
 
+    @classmethod
+    def is_valid_seed(cls, new_value):
+        return new_value == '' or cls.is_valid_entry(new_value)
+
     def exit_action(self, *args):
-        if self.simulation_controller.state == SimulationController.RUNNING:
+        if self.simulation_controller.state == State.RUNNING:
             logging.info('Can\'t exit yet...')
             self.simulation_controller.pause()
             self.after(50, self.exit_action)
@@ -109,7 +111,7 @@ class Application(tkinter.Tk):
     def set_keybinds(self):
         self.bind('<space>', self.play_pause_action)
         self.bind('<e>', self.exit_action)
-        self.bind('<r>', lambda *args: self.simulation_controller.reset())
+        self.bind('<r>', lambda *args: self.simulation_controller.setup())
 
     def place_widgets(self):
         self.canvas.place(x=self.window_width / 2 - self.canvas_width / 2, y=0)

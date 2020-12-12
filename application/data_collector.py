@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 
 import matplotlib.pyplot as plt
@@ -48,6 +49,9 @@ class DataCollector(object):
         return [((avg - min_value) / (max_value - min_value)) * 100 for avg in averages_list]
 
     def save(self):
+        if not self.days:
+            logging.info('No data to save')
+            return
         if os.path.isdir(self.folder) is False:
             os.mkdir(self.folder)
         self.plot_population()
