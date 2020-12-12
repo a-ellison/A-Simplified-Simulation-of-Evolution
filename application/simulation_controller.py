@@ -1,22 +1,24 @@
+import logging
 import time
 
 from helpers import ThreadPoolExecutorStackTraced, State, Speed
-from models.simulation import Simulation
+from models.simulation import Simulation, Behaviors
 from structs.point import Point
 
 thread_pool = ThreadPoolExecutorStackTraced(max_workers=1)
 
 
 class SimulationController(object):
-    def __init__(self, canvas, canvas_width, canvas_height, speed_var, seed_var, start_population_var, food_count_var):
+    def __init__(self, canvas, canvas_width, canvas_height, behavior_var, speed_var, seed_var, params):
         self.canvas = canvas
         self.canvas_width = canvas_width
         self.canvas_height = canvas_height
-        self.state = State.PAUSE
+        self.behavior_var = behavior_var
         self.speed_var = speed_var
         self.seed_var = seed_var
-        self.start_population_var = start_population_var
-        self.food_count_var = food_count_var
+        self.state = State.PAUSE
+        self.params = params
+        self.simulation = None
         self.setup()
 
     def update_canvas(self):
@@ -69,7 +71,9 @@ class SimulationController(object):
             seed = int((time.time() * 10 ** 4) % 10 ** 7)
         else:
             seed = int(self.seed_var.get())
-        self.simulation = Simulation(self.canvas_width, self.canvas_height, seed, self.start_population_var.get(), self.food_count_var.get())
+        behavior = Behaviors[self.behavior_var.get()].value
+        config = {k: v.get() for k, v in self.params.items()}
+        self.simulation = Simulation(self.canvas_width, self.canvas_height, behavior, seed, config)
         self.update_canvas()
 
     def save(self):

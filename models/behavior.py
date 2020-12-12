@@ -14,16 +14,15 @@ from structs.point import Point
 
 class Behavior:
     @classmethod
-    def initialize(cls, world: World, start_population, food_count):
-        world.config['food_count'] = food_count
-        # TODO: set species count from GUI
-        cls.generate_animals(world, start_population, 3)
-        cls.generate_food(world, food_count)
+    def initialize(cls, world: World):
+        cls.generate_animals(world)
+        cls.generate_food(world)
 
     @classmethod
-    def generate_animals(cls, world: World, start_population, species_count):
-        species = cls.generate_species(world, species_count)
-        for i in range(start_population):
+    def generate_animals(cls, world: World):
+        species_count = max(0, min(world.config.get('start_population'), world.config.get('species')))
+        species = cls.generate_species(world.corners, species_count)
+        for i in range(world.config.get('start_population', 0)):
             if i % 4 == 0:
                 side = Point.TOP
             elif i % 4 == 1:
@@ -37,12 +36,29 @@ class Behavior:
             world.add_animal(new_animal)
 
     @classmethod
-    def generate_species(cls, world, n):
-        return [Animal.random(*world.corners).traits for i in range(n)]
+    def params(cls):
+        return {
+            'start_population': {
+                'default': 40,
+                'label': 'Start Population',
+            },
+            'food_count': {
+                'default': 20,
+                'label': 'Food Count',
+            },
+            'species': {
+                'default': 3,
+                'label': 'Species',
+            },
+        }
 
     @classmethod
-    def generate_food(cls, world: World, food_count):
-        for i in range(food_count):
+    def generate_species(cls, corners, n):
+        return [Animal.random(*corners).traits for _ in range(n)]
+
+    @classmethod
+    def generate_food(cls, world: World):
+        for i in range(world.config.get('food_count', 0)):
             min_coordinate = Point(int(world.width / 6), int(world.height / 6))
             max_coordinate = Point(int(world.width * 5 / 6), int(world.height * 5 / 6))
             position = Point.random(min_coordinate, max_coordinate)
@@ -154,7 +170,7 @@ class Behavior:
     @classmethod
     def reset_day(cls, world: World):
         world.all_animals = [a for a in world.all_animals if a.is_asleep]
-        cls.generate_food(world, world.config['food_count'])
+        cls.generate_food(world)
         for animal in world.all_animals:
             if not animal.is_hungry:
                 child = animal.mutate()

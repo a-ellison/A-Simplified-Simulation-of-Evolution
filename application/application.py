@@ -4,7 +4,7 @@ from application.simulation_controller import SimulationController
 import logging
 
 from helpers import Speed, State
-from models import simulation
+from models.simulation import Behaviors
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)-8s %(name)-15s %(message)s', filemode='w')
@@ -27,10 +27,14 @@ DEFAULT_START_POPULATION = 1
 DEFAULT_FOOD_COUNT = 0
 MAX_VALUE = 10000
 
+DEFAULT_SPINBOX = {
+    'to': 10000,
+    'width': 5,
+    'increment': 5,
+    'validate': 'key'
+}
 
-# TODO: Restructure application to support
-#  multiple pages and create pages for:
-#   - data analysis
+
 class Application(tkinter.Tk):
     def __init__(self, window_width=DEFAULT_WINDOW_WIDTH, window_height=DEFAULT_WINDOW_HEIGHT):
         super().__init__()
@@ -40,8 +44,11 @@ class Application(tkinter.Tk):
         self.canvas_width = self.window_width * 0.7
         self.canvas_height = self.window_height * 0.7
         self.canvas = tkinter.Canvas(self, width=self.canvas_width, height=self.canvas_height, bg='black')
-        self.controls_frame = tkinter.Frame(self)
-        # Configuration
+        self.meta_frame = tkinter.Frame(self)
+        self.controls_frame = tkinter.Frame(self.meta_frame)
+        self.behavior = tkinter.StringVar(value=Behaviors.PRIMER.name)
+        choices = [e.name for e in list(Behaviors)]
+        self.behaviors = tkinter.OptionMenu(self.controls_frame, self.behavior, *choices)
         self.speed_label = tkinter.Label(self.controls_frame, text='Speed:')
         self.speeds = tkinter.Frame(self.controls_frame)
         self.speed = tkinter.IntVar(value=Speed.NORMAL.value)
@@ -51,32 +58,22 @@ class Application(tkinter.Tk):
                                                       variable=self.speed, value=Speed.NORMAL.value)
         self.fast_radiobutton = tkinter.Radiobutton(self.speeds, text='Fast',
                                                     variable=self.speed, value=Speed.FAST.value)
-        validate_seed = (self.register(self.is_valid_seed), '%P')
-        self.seed = tkinter.StringVar(value='')
         self.seed_label = tkinter.Label(self.controls_frame, text='Random seed:')
+        self.seed = tkinter.StringVar(value='')
+        validate_seed = (self.register(self.is_valid_seed), '%P')
         self.seed_entry = tkinter.Entry(self.controls_frame, width=10, textvariable=self.seed, validate='key',
                                         validatecommand=validate_seed)
-        validate_entry = (self.register(self.is_valid_entry), '%P')
-        self.start_population_label = tkinter.Label(self.controls_frame, text='Start Population:')
-        self.start_population = tkinter.IntVar(value=DEFAULT_START_POPULATION)
-        self.start_population_spinbox = tkinter.Spinbox(self.controls_frame, from_=0, to=MAX_VALUE, increment=5,
-                                                        width=5, textvariable=self.start_population, validate='key',
-                                                        validatecommand=validate_entry)
-        self.food_count_label = tkinter.Label(self.controls_frame, text='Food Count:')
-        self.food_count = tkinter.IntVar(value=DEFAULT_FOOD_COUNT)
-        self.food_count_spinbox = tkinter.Spinbox(self.controls_frame, from_=0, to=MAX_VALUE, increment=5, width=5,
-                                                  textvariable=self.food_count, validate='key',
-                                                  validatecommand=validate_entry)
-        self.simulation_controller = SimulationController(self.canvas, self.canvas_width, self.canvas_height, self.speed, self.seed,
-                                                          self.start_population, self.food_count)
-        # Control
+        self.params_frame = tkinter.Frame(self.meta_frame)
+        self.params = self.create_parameter_widgets()
+        self.simulation_controller = SimulationController(self.canvas, self.canvas_width, self.canvas_height,
+                                                          self.behavior, self.speed, self.seed, self.params)
         self.play_pause_simulation_button = tkinter.Button(self.controls_frame, text='Play/Pause',
                                                            command=self.play_pause_action)
         self.reset_simulation_button = tkinter.Button(self.controls_frame, text='Reset',
                                                       command=self.simulation_controller.setup)
         self.exit_button = tkinter.Button(self.controls_frame, text='Exit', command=self.exit_action)
-        self.set_keybinds()
         self.place_widgets()
+        self.set_keybinds()
 
     def configure_window(self):
         self.title(APPLICATION_TITLE)
@@ -113,20 +110,40 @@ class Application(tkinter.Tk):
         self.bind('<e>', self.exit_action)
         self.bind('<r>', lambda *args: self.simulation_controller.setup())
 
+    def create_parameter_widgets(self):
+        config = Behaviors[self.behavior.get()].value.params()
+        validate = (self.register(self.is_valid_entry), '%P')
+        params = {}
+        count = 0
+        for key in config:
+            param = config[key]
+            label = tkinter.Label(self.params_frame, text=param.get('label', ''))
+            var = tkinter.IntVar(value=0)
+            entry = tkinter.Spinbox(self.params_frame, from_=param.get('default', 0), textvariable=var, validatecommand=validate, **DEFAULT_SPINBOX)
+            params[key] = var
+            label.grid(column=count, row=0)
+            entry.grid(column=count, row=1)
+            count += 1
+        return params
+
     def place_widgets(self):
         self.canvas.place(x=self.window_width / 2 - self.canvas_width / 2, y=0)
         self.play_pause_simulation_button.grid(column=0, row=0, rowspan=2)
         self.reset_simulation_button.grid(column=1, row=0, rowspan=2)
         self.exit_button.grid(column=2, row=0, rowspan=2)
-        self.speed_label.grid(column=3, row=0)
+        self.behaviors.grid(column=3, row=0, rowspan=2)
+        self.speed_label.grid(column=4, row=0)
         self.slow_radiobutton.pack(anchor=tkinter.W)
         self.normal_radiobutton.pack(anchor=tkinter.W)
         self.fast_radiobutton.pack(anchor=tkinter.W)
-        self.speeds.grid(column=3, row=1)
-        self.seed_label.grid(column=4, row=0)
-        self.seed_entry.grid(column=4, row=1)
-        self.start_population_label.grid(column=0, row=3)
-        self.start_population_spinbox.grid(column=0, row=4)
-        self.food_count_label.grid(column=1, row=3)
-        self.food_count_spinbox.grid(column=1, row=4)
-        self.controls_frame.place(x=WIDGET_SPACING, y=self.canvas_height + WIDGET_SPACING)
+        self.speeds.grid(column=4, row=1)
+        self.seed_label.grid(column=5, row=0)
+        self.seed_entry.grid(column=5, row=1)
+        self.controls_frame.grid(column=0, row=0)
+        self.params_frame.grid(column=0, row=1)
+        self.meta_frame.place(x=WIDGET_SPACING, y=self.canvas_height + WIDGET_SPACING)
+
+    def reset_params(self):
+        for widget in self.params_frame.winfo_children():
+            widget.destroy()
+        self.params = self.create_parameter_widgets()

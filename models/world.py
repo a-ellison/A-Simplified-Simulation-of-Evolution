@@ -5,14 +5,14 @@ from models.drawable import Drawable
 
 # abstract all_animals and all_food so that world doesn't know the concept of animals/food
 class World:
-    def __init__(self, width, height, seed):
+    def __init__(self, width, height, seed, config):
         self.width = width
         self.height = height
         self.seed = seed
+        self.config = config
         self.time = 0
         self.all_animals = []
         self.all_food = []
-        self.config = {}
 
     def add_animal(self, animal):
         self.all_animals.append(animal)
