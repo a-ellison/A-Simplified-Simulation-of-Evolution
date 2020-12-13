@@ -2,13 +2,12 @@ import random
 from enum import Enum
 
 from helpers import State
-from application import data_collector
-from models.behavior import Behavior
+from models.primer.primer_behavior import PrimerBehavior
 from models.world import World
 
 
 class Behaviors(Enum):
-    PRIMER = Behavior
+    PRIMER = PrimerBehavior
 
 
 class Simulation:
@@ -19,10 +18,10 @@ class Simulation:
         random.seed(seed)
         self.world = World(self.world_width, self.world_height, seed, config)
         self.behavior.initialize(self.world)
-        self.data_collector = data_collector.DataCollector(self.world)
+        self.data_collector = self.behavior.get_data_collector(self.world)
 
     def step(self, speed):
-        if self.world.is_dead:
+        if self.behavior.is_dead(self.world):
             return State.FINISHED
         self.behavior.apply(self.world, speed)
         self.data_collector.track()

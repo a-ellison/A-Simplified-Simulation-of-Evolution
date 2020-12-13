@@ -6,8 +6,7 @@ import logging
 from helpers import Speed, State
 from models.simulation import Behaviors
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s %(levelname)-8s %(name)-15s %(message)s', filemode='w')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s %(name)-15s %(message)s', filemode='w')
 
 random.seed(10)
 
@@ -22,10 +21,6 @@ DEFAULT_WINDOW_WIDTH = 800
 DEFAULT_WINDOW_HEIGHT = 600
 APPLICATION_TITLE = 'A Simplified Simulation of Evolution'
 WIDGET_SPACING = 10
-
-DEFAULT_START_POPULATION = 1
-DEFAULT_FOOD_COUNT = 0
-MAX_VALUE = 10000
 
 DEFAULT_SPINBOX = {
     'to': 10000,
@@ -118,8 +113,8 @@ class Application(tkinter.Tk):
         for key in config:
             param = config[key]
             label = tkinter.Label(self.params_frame, text=param.get('label', ''))
-            var = tkinter.IntVar(value=0)
-            entry = tkinter.Spinbox(self.params_frame, from_=param.get('default', 0), textvariable=var, validatecommand=validate, **DEFAULT_SPINBOX)
+            var = tkinter.IntVar(value=param.get('default', 0))
+            entry = tkinter.Spinbox(self.params_frame, from_=0, textvariable=var, validatecommand=validate, **DEFAULT_SPINBOX)
             params[key] = var
             label.grid(column=count, row=0)
             entry.grid(column=count, row=1)
