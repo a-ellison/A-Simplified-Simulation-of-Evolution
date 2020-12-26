@@ -1,8 +1,4 @@
-import math
 import random
-
-from structs.color import Color
-
 
 def main():
     random.seed(3)

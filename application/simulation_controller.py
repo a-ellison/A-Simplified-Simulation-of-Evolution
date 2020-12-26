@@ -1,70 +1,79 @@
-import concurrent.futures
-import tkinter
+import logging
+import time
 
-from models.simulation import Simulation
+from helpers import ThreadPoolExecutorStackTraced, State, Speed
+from models.simulation import Simulation, Behaviors
+from structs.point import Point
 
-thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+thread_pool = ThreadPoolExecutorStackTraced(max_workers=1)
 
 
 class SimulationController(object):
-    PAUSE = 0
-    PLAY = 1
-    RUNNING = 2
-
-    def __init__(self, canvas: tkinter.Canvas, canvas_width, canvas_height, start_population, food_count):
+    def __init__(self, canvas, canvas_width, canvas_height, behavior_var, speed_var, seed_var, params):
         self.canvas = canvas
         self.canvas_width = canvas_width
         self.canvas_height = canvas_height
-        self.state = SimulationController.PAUSE
-        self.speed = 1
-        self.start_population = start_population
-        self.food_count = food_count
-        self.simulation = Simulation(self.canvas_width, self.canvas_height, start_population, food_count)
-        self.update_canvas()
+        self.behavior_var = behavior_var
+        self.speed_var = speed_var
+        self.seed_var = seed_var
+        self.state = State.PAUSE
+        self.params = params
+        self.simulation = None
+        self.setup()
 
     def update_canvas(self):
         all_canvas_ids = list(self.canvas.find_all())
         for drawable in self.simulation.all_drawables:
             if drawable.canvas_id is None:
-                drawable.canvas_id = self.canvas.create_circle(drawable.position.x, drawable.position.y, drawable.radius,
+                drawable.canvas_id = self.canvas.create_circle(drawable.position.x, drawable.position.y,
+                                                               drawable.radius,
                                                                fill=drawable.color.to_hex())
             else:
-                dx = drawable.position.x - drawable.last_position.x
-                dy = drawable.position.y - drawable.last_position.y
+                dx = drawable.position.x - drawable.last_drawn_position.x
+                dy = drawable.position.y - drawable.last_drawn_position.y
                 self.canvas.move(drawable.canvas_id, dx, dy)
+                drawable.last_drawn_position = Point(drawable.position.x, drawable.position.y)
                 all_canvas_ids.remove(drawable.canvas_id)
         for unused in all_canvas_ids:
             self.canvas.delete(unused)
         self.canvas.update()
 
     def play(self):
-        if self.state != SimulationController.RUNNING:
-            self.state = SimulationController.RUNNING
+        if self.state != State.RUNNING:
+            self.state = State.RUNNING
 
             def callback(this_future):
-                if this_future._result == Simulation.ERROR:
-                    raise BaseException('An error has ocurred: ' + str(this_future._exception))
-                elif this_future._result == Simulation.FINISHED:
+                try:
+                    result = this_future.result()
+                except Exception:
+                    raise
+                if result == State.FINISHED:
                     self.pause()
                     self.show_message('The simulation has finished')
                 else:
                     self.update_canvas()
-                    if self.state != SimulationController.PAUSE:
-                        self.state = SimulationController.PLAY
+                    if self.state != State.PAUSE:
+                        self.state = State.PLAY
                         self.play()
 
-            future = thread_pool.submit(self.simulation.step, self.speed)
-            # future = thread_pool.submit(self.simulation.step, self.speed, 0.1)
+            future = thread_pool.submit(self.simulation.step, Speed(self.speed_var.get()))
             future.add_done_callback(callback)
 
     def pause(self):
-        self.state = SimulationController.PAUSE
+        self.state = State.PAUSE
 
-    def reset(self):
+    def setup(self):
         self.canvas.delete('all')
-        if self.state != SimulationController.PAUSE:
+        if self.state != State.PAUSE:
             self.pause()
-        self.simulation.reset(self.start_population, self.food_count)
+        if self.seed_var.get() == '':
+            # more or less unique time
+            seed = int((time.time() * 10 ** 4) % 10 ** 7)
+        else:
+            seed = int(self.seed_var.get())
+        behavior = Behaviors[self.behavior_var.get()].value
+        config = {k: v.get() for k, v in self.params.items()}
+        self.simulation = Simulation(self.canvas_width, self.canvas_height, behavior, seed, config)
         self.update_canvas()
 
     def save(self):

@@ -1,5 +1,17 @@
-Notes:
+TODOS
+High prio:
+- make world class more flexible so that it can be used by multiple models
+ --> it should only know concepts shared by all models 
+- create a simple hunter-prey simulation
+1. hunter + prey = new hunter and kill prey
+2. prey + prey = new prey
+3. prey can survive from environment 
+
+Primer sim:
+- only increment age after 1 day
 - add radom numbers to make information fuzzy
-- relation between constants for sizes, energy cost, wandering offset, etc.?
+- should there be relation between constants for sizes, energy cost, wandering offset, etc.?
+- more ambiguity of traits
+- think about other data to display
 
 

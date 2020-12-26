@@ -1,47 +1,35 @@
-import logging
+import random
+from enum import Enum
 
-from models import behavior
-from application import data_collector
+from helpers import State
+from models.primer.primer_behavior import PrimerBehavior
 from models.world import World
 
 
-class Simulation:
-    ERROR = 0
-    CONTINUE = 1
-    FINISHED = 2
+class Behaviors(Enum):
+    PRIMER = PrimerBehavior
 
-    def __init__(self, world_width, world_height, start_population, food_count):
+
+class Simulation:
+    def __init__(self, world_width, world_height, behavior, seed, config):
         self.world_width = world_width
         self.world_height = world_height
-        self.behavior = behavior.Behavior
-        self.world = World(self.world_width, self.world_height)
-        self.behavior.initialize(self.world, start_population, food_count)
-        self.data_collector = data_collector.DataCollector(self.world)
+        self.behavior = behavior
+        random.seed(seed)
+        self.world = World(self.world_width, self.world_height, seed, config)
+        self.behavior.initialize(self.world)
+        self.data_collector = self.behavior.get_data_collector(self.world)
 
-    def step(self, speed, delay=0):
-        if self.world.is_dead:
-            return self.FINISHED
-        try:
-            import time
-            start = time.perf_counter()
-            for i in range(speed):
-                self.behavior.apply(self.world)
-                self.data_collector.track()
-            duration = time.perf_counter() - start
-            if duration < delay:
-                time.sleep(delay - duration)
-            return self.CONTINUE
-        except Exception as e:
-            logging.error(str(e))
-            return self.ERROR
+    def step(self, speed):
+        if self.behavior.is_dead(self.world):
+            return State.FINISHED
+        self.behavior.apply(self.world, speed)
+        self.data_collector.track()
+        return State.CONTINUE
 
     @property
     def all_drawables(self):
         return self.world.all_drawables
-
-    def reset(self, start_population, food_count):
-        self.world.wipe()
-        self.behavior.initialize(self.world, start_population, food_count)
 
     def save(self):
         if self.world.time > 0:
