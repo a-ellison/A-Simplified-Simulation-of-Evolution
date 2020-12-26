@@ -64,27 +64,6 @@ class Application(tkinter.Tk):
         self.reset_simulation_button = tkinter.Button(self.controls_frame, text='Reset',
                                                       command=self.simulation_controller.setup)
         self.exit_button = tkinter.Button(self.controls_frame, text='Exit', command=self.exit_action)
-        self.speed_label = tkinter.Label(self.controls_frame, text='Speed:')
-        self.speed = tkinter.IntVar(value=1)
-        self.speed_scale = tkinter.Scale(self.controls_frame, variable=self.speed, from_=1, to=100,
-                                         command=self.set_speed_action, orient=tkinter.HORIZONTAL)
-        self.start_population_label = tkinter.Label(self.controls_frame, text='Start Population:')
-        self.start_population = tkinter.IntVar(value=DEFAULT_START_POPULATION)
-        validate_start_population = (self.register(self.validate_start_population), '%P')
-        self.start_population_spinbox = tkinter.Spinbox(self.controls_frame, from_=0, to=MAX_VALUE, increment=5,
-                                                        width=5, textvariable=self.start_population, validate='key',
-                                                        validatecommand=validate_start_population)
-        self.food_count_label = tkinter.Label(self.controls_frame, text='Food Count:')
-        self.food_count = tkinter.IntVar(value=DEFAULT_FOOD_COUNT)
-        validate_food_count = (self.register(self.validate_food_count), '%P')
-        self.food_count_spinbox = tkinter.Spinbox(self.controls_frame, from_=0, to=MAX_VALUE, increment=5, width=5,
-                                                  textvariable=self.food_count, validate='key',
-                                                  validatecommand=validate_food_count)
-        self.seed = -1
-        validate_seed = (self.register(self.validate_seed), '%P')
-        self.seed_spinbox = tkinter.Entry(self.controls_frame, width=5, textvariable=self.seed,
-                                          validatecommand=validate_seed)
-        self.set_keybinds()
         self.place_widgets()
         self.set_keybinds()
 
