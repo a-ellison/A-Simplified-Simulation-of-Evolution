@@ -64,7 +64,6 @@ class Application(tkinter.Tk):
         self.reset_simulation_button = tkinter.Button(self.controls_frame, text='Reset',
                                                       command=self.simulation_controller.setup)
         self.exit_button = tkinter.Button(self.controls_frame, text='Exit', command=self.exit_action)
-<<<<<<< HEAD
         self.speed_label = tkinter.Label(self.controls_frame, text='Speed:')
         self.speed = tkinter.IntVar(value=1)
         self.speed_scale = tkinter.Scale(self.controls_frame, variable=self.speed, from_=1, to=100,
@@ -86,8 +85,6 @@ class Application(tkinter.Tk):
         self.seed_spinbox = tkinter.Entry(self.controls_frame, width=5, textvariable=self.seed,
                                           validatecommand=validate_seed)
         self.set_keybinds()
-=======
->>>>>>> origin/master
         self.place_widgets()
         self.set_keybinds()
 
