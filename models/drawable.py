@@ -1,10 +1,12 @@
-import abc
+from abc import ABC
 
+import helpers
 from structs.color import Color
 from structs.point import Point
 
 
-class Drawable(abc.ABC):
+# TODO: remove last_position, only used in primer animal
+class Drawable(ABC):
     def __init__(self, position: Point, radius, color: Color):
         self.position = position
         self.last_position = position
@@ -12,8 +14,3 @@ class Drawable(abc.ABC):
         self.radius = radius
         self.color = color
         self.canvas_id = None
-        self.can_remove = False
-
-    def remove(self):
-        self.can_remove = True
-
