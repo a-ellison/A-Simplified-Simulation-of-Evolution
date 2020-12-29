@@ -135,7 +135,7 @@ class PrimerAnimal(Drawable):
             sight_range = helpers.random_decimal(PrimerAnimal.MIN_SIGHT_RANGE, PrimerAnimal.MAX_SIGHT_RANGE)
         position = kwargs.get('position')
         if position is None:
-            min_coordinate = min_coordinate.move_by(radius, radius)
+            min_coordinate = min_coordinate.move_by(radius)
             max_coordinate = max_coordinate.move_by(-radius)
             position = Point.random(min_coordinate, max_coordinate, side)
         return PrimerAnimal(position, radius, speed, sight_range)
