@@ -123,7 +123,7 @@ class PrimerAnimal(Drawable):
         return Color(r, g, b)
 
     @classmethod
-    def random(cls, min_coordinate: Point, max_coordinate: Point, side=None, **kwargs):
+    def random(cls, min_coordinate, max_coordinate, side=None, **kwargs):
         radius = kwargs.get('radius')
         if radius is None:
             radius = helpers.random_decimal(PrimerAnimal.MIN_RADIUS, PrimerAnimal.MAX_RADIUS)
@@ -133,10 +133,9 @@ class PrimerAnimal(Drawable):
         sight_range = kwargs.get('sight_range')
         if sight_range is None:
             sight_range = helpers.random_decimal(PrimerAnimal.MIN_SIGHT_RANGE, PrimerAnimal.MAX_SIGHT_RANGE)
-        color = kwargs.get('color')
         position = kwargs.get('position')
         if position is None:
-            min_coordinate = min_coordinate.move_by(radius)
+            min_coordinate = min_coordinate.move_by(radius, radius)
             max_coordinate = max_coordinate.move_by(-radius)
             position = Point.random(min_coordinate, max_coordinate, side)
         return PrimerAnimal(position, radius, speed, sight_range)
