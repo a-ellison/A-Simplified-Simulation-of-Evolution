@@ -20,8 +20,10 @@ class SimulationController(object):
         self.params = params
         self.simulation = None
         self.setup()
+        self.canvas.after(17, self.canvas_refresh)
 
     def update_canvas(self):
+        start = time.perf_counter()
         all_canvas_ids = list(self.canvas.find_all())
         for drawable in self.simulation.all_drawables:
             if drawable.canvas_id is None:
@@ -31,12 +33,19 @@ class SimulationController(object):
             else:
                 dx = drawable.position.x - drawable.last_drawn_position.x
                 dy = drawable.position.y - drawable.last_drawn_position.y
-                self.canvas.move(drawable.canvas_id, dx, dy)
+                if dx or dy:
+                    self.canvas.move(drawable.canvas_id, dx, dy)
                 drawable.last_drawn_position = Point(drawable.position.x, drawable.position.y)
                 all_canvas_ids.remove(drawable.canvas_id)
         for unused in all_canvas_ids:
             self.canvas.delete(unused)
         self.canvas.update()
+        logging.info(f'canvas update took {time.perf_counter() - start}s')
+
+    def canvas_refresh(self):
+        if self.state != State.PAUSE:
+            self.update_canvas()
+        self.canvas.after(17, self.canvas_refresh)
 
     def play(self):
         if self.state != State.RUNNING:
@@ -51,7 +60,6 @@ class SimulationController(object):
                     self.pause()
                     self.show_message('The simulation has finished')
                 else:
-                    self.update_canvas()
                     if self.state != State.PAUSE:
                         self.state = State.PLAY
                         self.play()
