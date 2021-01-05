@@ -1,6 +1,7 @@
 venv/**
 .idea/**
 **/__pycache__/**
-.gitignore
 data
 sandbox.py
+notes.txt
+cool_data
