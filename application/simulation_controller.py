@@ -9,7 +9,7 @@ thread_pool = ThreadPoolExecutorStackTraced(max_workers=1)
 
 
 class SimulationController(object):
-    def __init__(self, canvas, canvas_width, canvas_height, behavior_var, speed_var, seed_var, params):
+    def __init__(self, canvas, canvas_width, canvas_height, behavior_var, speed_var, seed_var):
         self.canvas = canvas
         self.canvas_width = canvas_width
         self.canvas_height = canvas_height
@@ -17,13 +17,12 @@ class SimulationController(object):
         self.speed_var = speed_var
         self.seed_var = seed_var
         self.state = State.PAUSE
-        self.params = params
         self.simulation = None
-        self.setup()
+        self.params = {}
+        self._setup = False
         self.canvas.after(17, self.canvas_refresh)
 
     def update_canvas(self):
-        start = time.perf_counter()
         all_canvas_ids = list(self.canvas.find_all())
         for drawable in self.simulation.all_drawables:
             if drawable.canvas_id is None:
@@ -40,7 +39,6 @@ class SimulationController(object):
         for unused in all_canvas_ids:
             self.canvas.delete(unused)
         self.canvas.update()
-        logging.info(f'canvas update took {time.perf_counter() - start}s')
 
     def canvas_refresh(self):
         if self.state != State.PAUSE:
@@ -71,18 +69,30 @@ class SimulationController(object):
         self.state = State.PAUSE
 
     def setup(self):
+        self._setup = True
         self.canvas.delete('all')
         if self.state != State.PAUSE:
             self.pause()
+        behavior = Behaviors[self.behavior_var.get()].value
+        self.simulation = Simulation(self.canvas_width, self.canvas_height, behavior, self.seed, self.config)
+        self.update_canvas()
+
+    @property
+    def seed(self):
         if self.seed_var.get() == '':
             # more or less unique time
             seed = int((time.time() * 10 ** 4) % 10 ** 7)
         else:
             seed = int(self.seed_var.get())
-        behavior = Behaviors[self.behavior_var.get()].value
-        config = {k: v.get() for k, v in self.params.items()}
-        self.simulation = Simulation(self.canvas_width, self.canvas_height, behavior, seed, config)
-        self.update_canvas()
+        return seed
+
+    @property
+    def config(self):
+        return {k: v.get() for k, v in self.params.items()}
+
+    def update_config(self):
+        if self._setup:
+            self.simulation.update_config(self.config)
 
     def save(self):
         self.simulation.save()
