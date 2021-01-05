@@ -1,13 +1,16 @@
+import logging
 import random
 from enum import Enum
 
 from helpers import State
-from models.primer.primer_behavior import PrimerBehavior
+from models.microbe.behavior import MicrobeBehavior
+from models.primer.behavior import PrimerBehavior
 from models.world import World
 
 
 class Behaviors(Enum):
     PRIMER = PrimerBehavior
+    MICROBE = MicrobeBehavior
 
 
 class Simulation:
@@ -23,8 +26,10 @@ class Simulation:
     def step(self, speed):
         if self.behavior.is_dead(self.world):
             return State.FINISHED
-        self.behavior.apply(self.world, speed)
-        self.data_collector.track()
+        duration = self.behavior.apply(self.world, speed)
+        logging.info(f'step took {duration}s')
+        self.data_collector.collect(duration)
+        self.world.time += 1
         return State.CONTINUE
 
     @property

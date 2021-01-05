@@ -1,12 +1,14 @@
 import logging
+import time
 import math
 import random
 
 import helpers
 from helpers import Speed
+from models.behavior_base import BehaviorBase
 from models.drawable import Drawable
-from models.primer.primer_animal import PrimerAnimal
-from models.primer.primer_data import PrimerData
+from models.primer.animal import PrimerAnimal
+from models.primer.data import PrimerData
 from models.world import World
 from structs.color import Color
 from structs.point import Point
@@ -15,7 +17,7 @@ ANIMALS = 'ANIMALS'
 FOOD = 'FOOD'
 
 
-class PrimerBehavior:
+class PrimerBehavior(BehaviorBase):
     @classmethod
     def initialize(cls, world: World):
         world.drawables[ANIMALS] = []
@@ -83,7 +85,7 @@ class PrimerBehavior:
         world.drawables[FOOD].remove(food)
 
     @classmethod
-    def params(cls):
+    def get_config(cls):
         return {
             'start_population': {
                 'default': 40,
@@ -115,22 +117,21 @@ class PrimerBehavior:
 
     @classmethod
     def apply(cls, world: World, speed):
+        start = time.perf_counter()
         if cls.is_asleep(world):
             world.drawables[ANIMALS] = [a for a in cls.all_animals(world) if a.is_asleep]
             cls.reset_day(world)
             logging.info('A day has passed...')
         else:
-            import time
-            delay = 0.01 if speed == Speed.SLOW else 0
-            start = time.perf_counter()
             cls.orient(world)
             cls.move(world)
             cls.act(world)
             cls.reset_step(world)
-            duration = time.perf_counter() - start
-            if duration < delay:
-                time.sleep(delay - duration)
-        world.time += 1
+        duration = time.perf_counter() - start
+        delay = 0.01 if speed == Speed.SLOW else 0
+        if duration < delay:
+            time.sleep(delay - duration)
+        return duration
 
     @classmethod
     def orient(cls, world: World):

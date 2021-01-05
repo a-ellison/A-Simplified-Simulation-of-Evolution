@@ -5,7 +5,7 @@ import logging
 from helpers import Speed, State
 from models.simulation import Behaviors
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s %(name)-15s %(message)s', filemode='w')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s %(name)-15s %(message)s')
 
 
 def _create_circle(self, x, y, r, **kwargs):
@@ -38,9 +38,11 @@ class Application(tkinter.Tk):
         self.canvas = tkinter.Canvas(self, width=self.canvas_width, height=self.canvas_height, bg='black')
         self.meta_frame = tkinter.Frame(self)
         self.controls_frame = tkinter.Frame(self.meta_frame)
-        self.behavior = tkinter.StringVar(value=Behaviors.PRIMER.name)
+        self.behavior = tkinter.StringVar(value=Behaviors.MICROBE.name)
         choices = [e.name for e in list(Behaviors)]
-        self.behaviors = tkinter.OptionMenu(self.controls_frame, self.behavior, *choices)
+        # does reset if option selected
+        self.behaviors = tkinter.OptionMenu(self.controls_frame, self.behavior, *choices,
+                                            command=self.reset_action)
         self.speed_label = tkinter.Label(self.controls_frame, text='Speed:')
         self.speeds = tkinter.Frame(self.controls_frame)
         self.speed = tkinter.IntVar(value=Speed.NORMAL.value)
@@ -62,7 +64,7 @@ class Application(tkinter.Tk):
         self.play_pause_simulation_button = tkinter.Button(self.controls_frame, text='Play/Pause',
                                                            command=self.play_pause_action)
         self.reset_simulation_button = tkinter.Button(self.controls_frame, text='Reset',
-                                                      command=self.simulation_controller.setup)
+                                                      command=self.reset_action)
         self.exit_button = tkinter.Button(self.controls_frame, text='Exit', command=self.exit_action)
         self.place_widgets()
         self.set_keybinds()
@@ -87,6 +89,9 @@ class Application(tkinter.Tk):
     def is_valid_seed(cls, new_value):
         return new_value == '' or cls.is_valid_entry(new_value)
 
+    def reset_action(self, *args):
+        self.simulation_controller.setup()
+
     def exit_action(self, *args):
         if self.simulation_controller.state == State.RUNNING:
             logging.info('Can\'t exit yet...')
@@ -100,10 +105,10 @@ class Application(tkinter.Tk):
     def set_keybinds(self):
         self.bind('<space>', self.play_pause_action)
         self.bind('<e>', self.exit_action)
-        self.bind('<r>', lambda *args: self.simulation_controller.setup())
+        self.bind('<r>', self.reset_action)
 
     def create_parameter_widgets(self):
-        config = Behaviors[self.behavior.get()].value.params()
+        config = Behaviors[self.behavior.get()].value.get_config()
         validate = (self.register(self.is_valid_entry), '%P')
         params = {}
         count = 0

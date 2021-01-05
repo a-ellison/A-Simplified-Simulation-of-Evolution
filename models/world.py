@@ -10,6 +10,7 @@ class World:
         self.config = config
         self.time = 0
         self.drawables = {}
+        self.store = {}
 
     @property
     def all_drawables(self):
@@ -42,3 +43,8 @@ class World:
         bottom = Point(drawable.position.x, self.height - drawable.radius)
         return drawable.position.find_closest((left, top, right, bottom))
 
+    def __getitem__(self, key):
+        return self.drawables[key]
+
+    def __setitem__(self, key, value):
+        self.drawables[key] = value
