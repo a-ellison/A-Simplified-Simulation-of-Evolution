@@ -1,3 +1,4 @@
+import logging
 import random
 from enum import Enum
 
@@ -54,7 +55,7 @@ class Microbe(Drawable):
     MAX_ENERGY = 1500
     REPRODUCTION_ENERGY = 1000
     STEP_COST = 1
-    CELL_SIZE = 10
+    CELL_SIZE = 5
 
     def __init__(self, cell_position, probabilities, color=Color(0, 0, 255)):
         self.cell_position = cell_position
@@ -67,7 +68,7 @@ class Microbe(Drawable):
     def move(self, min_cell, max_cell):
         self.cell_position = self.direction.next_position(self.cell_position).restrict_to(min_cell, max_cell, True)
         self.update_position()
-        self.energy -= 1
+        self.energy -= Microbe.STEP_COST
         self.age += 1
 
     @classmethod
@@ -83,7 +84,7 @@ class Microbe(Drawable):
         r = random.random()
         old_direction = self.direction
         self.direction = self.get_new_direction(r)
-        self.energy -= Direction.steering_cost(old_direction, self.direction)
+        self.energy += Direction.steering_cost(old_direction, self.direction)
 
     def get_new_direction(self, r):
         i = None
@@ -117,20 +118,14 @@ class Microbe(Drawable):
         self.energy += food.energy
 
     @classmethod
-    def random_position(cls, min_cell, max_cell):
-        cell_x = random.randint(min_cell.x, max_cell.x)
-        cell_y = random.randint(min_cell.x, max_cell.y)
-        return Point(cell_x, cell_y)
-
-    @classmethod
     def random(cls, min_cell, max_cell, **kwargs):
         cell_position = kwargs.get('cell_position')
         if cell_position is None:
-            cell_position = cls.random_position(min_cell, max_cell)
+            cell_position = Point.random(min_cell, max_cell)
         probabilities = kwargs.get('probabilities')
         if probabilities is None:
             probabilities = Microbe._random_probabilities()
-        return Microbe(cell_position.to_integers(), probabilities)
+        return Microbe(cell_position.to_int(), probabilities)
 
     def mutate(self):
         self.energy /= 2

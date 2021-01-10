@@ -92,9 +92,7 @@ class Application(tkinter.Tk):
 
     @classmethod
     def validate_param(cls, new_value):
-        logging.info('hello?')
         if cls.is_valid_entry(new_value):
-            # self.param_updated()
             return True
         return False
 

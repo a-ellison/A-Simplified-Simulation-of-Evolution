@@ -27,7 +27,6 @@ class Simulation:
         if self.behavior.is_dead(self.world):
             return State.FINISHED
         duration = self.behavior.apply(self.world, speed)
-        logging.info(f'step took {duration}s')
         self.data_collector.collect(duration)
         self.world.time += 1
         return State.CONTINUE
@@ -39,3 +38,6 @@ class Simulation:
     def save(self):
         if self.world.time > 0:
             self.data_collector.save()
+
+    def update_config(self, config):
+        self.world.config = config

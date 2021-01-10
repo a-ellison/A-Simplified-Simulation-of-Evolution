@@ -17,7 +17,7 @@ class MicrobeData(DataCollector):
     def collect(self, duration):
         super(MicrobeData, self).collect(duration)
         self.population.append(len(self.world['MICROBES']))
-        if self.world.time % 100 == 0:
+        if self.world.time % 1000 == 0:
             self.save()
 
     def plot_population(self):

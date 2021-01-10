@@ -13,12 +13,12 @@ class Point:
         self.y = y
 
     def move_by(self, n1, n2=None):
-        if n2:
+        if n2 is not None:
             return Point(self.x + n1, self.y + n2)
         return Point(self.x + n1, self.y + n1)
 
     def translate(self, n1, n2=None):
-        if n2:
+        if n2 is not None:
             return Point(self.x * n1, self.y * n2)
         return Point(self.x * n1, self.y * n1)
 
@@ -68,8 +68,8 @@ class Point:
 
     @classmethod
     def random(cls, min_coordinate, max_coordinate, side=None):
-        min_coordinate = min_coordinate.to_integers()
-        max_coordinate = max_coordinate.to_integers()
+        min_coordinate = min_coordinate.to_int()
+        max_coordinate = max_coordinate.to_int()
         if side == Point.TOP:
             x = random.randint(min_coordinate.x, max_coordinate.x)
             y = min_coordinate.y
@@ -87,7 +87,7 @@ class Point:
             y = random.randint(min_coordinate.y, max_coordinate.y)
         return Point(x, y)
 
-    def to_integers(self):
+    def to_int(self):
         return Point(int(self.x), int(self.y))
 
     def copy(self):
