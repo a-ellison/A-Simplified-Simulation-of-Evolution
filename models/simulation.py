@@ -3,6 +3,7 @@ import random
 from enum import Enum
 
 from helpers import State
+from models.beeplant.behavior import BeePlantBehavior
 from models.microbe.behavior import MicrobeBehavior
 from models.primer.behavior import PrimerBehavior
 from models.world import World
@@ -11,6 +12,7 @@ from models.world import World
 class Behaviors(Enum):
     PRIMER = PrimerBehavior
     MICROBE = MicrobeBehavior
+    BEEPLANT = BeePlantBehavior
 
 
 class Simulation:
