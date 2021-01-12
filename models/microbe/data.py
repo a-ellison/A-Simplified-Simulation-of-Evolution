@@ -24,7 +24,7 @@ class MicrobeData(DataCollector):
         fig, ax = plt.subplots()
         ax.plot([i + 1 for i in range(len(self.population))], self.population)
         ax.set_title('Population over time')
-        fig.savefig(f'{self.folder}/{self.name}-population.png')
+        fig.savefig(f'{self.folder}/population.png')
         plt.close(fig)
 
     def save_plots(self):

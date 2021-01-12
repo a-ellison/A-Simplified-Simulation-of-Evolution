@@ -16,8 +16,8 @@ class SimulationController(object):
         self.behavior_var = behavior_var
         self.speed_var = speed_var
         self.seed_var = seed_var
-        self.state = State.PAUSE
         self.params = params
+        self.state = State.PAUSE
         self.simulation = None
         self.setup()
         self.canvas.after(17, self.canvas_refresh)
@@ -52,6 +52,7 @@ class SimulationController(object):
             self.state = State.RUNNING
 
             def callback(this_future):
+                # TODO: this block is unnecessary the way it is ATM
                 try:
                     result = this_future.result()
                 except Exception:

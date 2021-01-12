@@ -20,7 +20,7 @@ class PrimerData(DataCollector):
         fig, ax = plt.subplots()
         ax.plot([i for i in range(1, len(self.days) + 1)], self.population)
         ax.set_title('Population over time')
-        fig.savefig(f'{self.folder}/{self.name}-population.png')
+        fig.savefig(f'{self.folder}/population.png')
         plt.close(fig)
 
     def plot_traits(self):
@@ -39,7 +39,7 @@ class PrimerData(DataCollector):
         min_y = int(min(all_averages) / 10) * 10
         ax.set_ylim(min_y, 100)
         ax.legend()
-        fig.savefig(f'{self.folder}/{self.name}-traits.png')
+        fig.savefig(f'{self.folder}/traits.png')
         plt.close(fig)
 
     @classmethod
