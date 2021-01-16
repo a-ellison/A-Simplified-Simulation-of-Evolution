@@ -50,6 +50,7 @@ class SimulationController(object):
             self.state = State.RUNNING
 
             def callback(this_future):
+                # TODO: this block is unnecessary the way it is ATM
                 try:
                     result = this_future.result()
                 except Exception:
