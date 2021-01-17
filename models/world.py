@@ -32,15 +32,11 @@ class World:
         is_y_inside = offset <= point.y <= (self.height - offset)
         return is_x_inside and is_y_inside
 
-    def wipe(self):
-        self.time = 0
-        self.drawables = {}
-
-    def get_closest_edge(self, drawable: Drawable):
-        left = Point(drawable.radius, drawable.position.y)
-        top = Point(drawable.position.x, drawable.radius)
-        right = Point(self.width - drawable.radius, drawable.position.y)
-        bottom = Point(drawable.position.x, self.height - drawable.radius)
+    def get_closest_edge(self, drawable):
+        left = Point(0, drawable.position.y)
+        top = Point(drawable.position.x, 0)
+        right = Point(self.width, drawable.position.y)
+        bottom = Point(drawable.position.x, self.height)
         return drawable.position.find_closest((left, top, right, bottom))
 
     def __getitem__(self, key):
