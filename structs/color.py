@@ -20,7 +20,7 @@ class Color(object):
 
     # uses Tkinter color formatting
     def to_hex(self):
-        return '#%02x%02x%02x' % (self.r, self.g, self.b)
+        return "#%02x%02x%02x" % (self.r, self.g, self.b)
 
     @classmethod
     def from_hex(cls, hex_string):
@@ -30,4 +30,4 @@ class Color(object):
         return Color(r, g, b)
 
     def __str__(self):
-        return f'Color({self.r},{self.g},{self.b})'
+        return f"Color({self.r},{self.g},{self.b})"

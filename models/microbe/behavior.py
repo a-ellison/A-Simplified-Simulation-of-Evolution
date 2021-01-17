@@ -15,10 +15,10 @@ from structs.point import Point
 START_MICROBE_NUM = 10
 START_FOOD_NUM = 100
 FOOD_PER_STEP = 2
-MICROBES = 'MICROBES'
-FOOD = 'FOOD'
+MICROBES = "MICROBES"
+FOOD = "FOOD"
 
-FoodPattern = Enum('FoodPattern', 'EVEN SQUARE LINES')
+FoodPattern = Enum("FoodPattern", "EVEN SQUARE LINES")
 
 
 class MicrobeBehavior(BehaviorBase):
@@ -26,9 +26,9 @@ class MicrobeBehavior(BehaviorBase):
     def initialize(cls, world):
         cls.set_food_matrix(world)
         world[MICROBES] = []
-        cls.generate_microbes(world.config['start_population'], world)
+        cls.generate_microbes(world.config["start_population"], world)
         world[FOOD] = []
-        cls.generate_food(world.config['start_food'], world)
+        cls.generate_food(world.config["start_food"], world)
 
     @classmethod
     def generate_microbes(cls, n, world):
@@ -43,7 +43,9 @@ class MicrobeBehavior(BehaviorBase):
 
     @classmethod
     def to_cell_corners(cls, min_coordinate, max_coordinate):
-        return cls.to_cell_position(min_coordinate), cls.to_cell_position(max_coordinate.move_by(-1))
+        return cls.to_cell_position(min_coordinate), cls.to_cell_position(
+            max_coordinate.move_by(-1)
+        )
 
     @classmethod
     def to_cell_position(cls, position):
@@ -51,7 +53,7 @@ class MicrobeBehavior(BehaviorBase):
 
     @classmethod
     def generate_food(cls, n, world):
-        pattern = FoodPattern[world.config['food_pattern']]
+        pattern = FoodPattern[world.config["food_pattern"]]
         if pattern == FoodPattern.EVEN:
             cls.generate_food_even(n, world)
         elif pattern == FoodPattern.SQUARE:
@@ -127,29 +129,32 @@ class MicrobeBehavior(BehaviorBase):
     @classmethod
     def set_food_matrix(cls, world):
         min_cell, max_cell = cls.to_cell_corners(*world.corners)
-        food_matrix = [[[] for i in range(min_cell.x, max_cell.x + 1)] for k in range(min_cell.y, max_cell.y + 1)]
+        food_matrix = [
+            [[] for i in range(min_cell.x, max_cell.x + 1)]
+            for k in range(min_cell.y, max_cell.y + 1)
+        ]
         world.store[FOOD] = food_matrix
 
     @classmethod
     def get_config(cls):
         return {
-            'start_population': {
-                'default': START_MICROBE_NUM,
-                'label': 'Start Population:',
+            "start_population": {
+                "default": START_MICROBE_NUM,
+                "label": "Start Population:",
             },
-            'start_food': {
-                'default': START_FOOD_NUM,
-                'label': 'Start Food:',
+            "start_food": {
+                "default": START_FOOD_NUM,
+                "label": "Start Food:",
             },
-            'food_per_step': {
-                'default': FOOD_PER_STEP,
-                'label': 'New food per step:',
+            "food_per_step": {
+                "default": FOOD_PER_STEP,
+                "label": "New food per step:",
             },
-            'food_pattern': {
-                'label': 'Food generation pattern:',
-                'type': 'radio',
-                'options': [e.name for e in list(FoodPattern)]
-            }
+            "food_pattern": {
+                "label": "Food generation pattern:",
+                "type": "radio",
+                "options": [e.name for e in list(FoodPattern)],
+            },
         }
 
     @classmethod
@@ -160,7 +165,7 @@ class MicrobeBehavior(BehaviorBase):
     def apply(cls, world, speed):
         min_cell, max_cell = cls.to_cell_corners(*world.corners)
         start = time.perf_counter()
-        cls.generate_food(world.config['food_per_step'], world)
+        cls.generate_food(world.config["food_per_step"], world)
         for microbe in world[MICROBES].copy():
             microbe.move(min_cell, max_cell)
             if microbe.is_hungry:
@@ -207,5 +212,7 @@ class MicrobeBehavior(BehaviorBase):
 class Food(Drawable):
     def __init__(self, cell_position, color=Color(0, 255, 0)):
         self.cell_position = cell_position
-        super().__init__(Microbe.to_actual_position(self.cell_position), Microbe.CELL_SIZE / 4, color)
+        super().__init__(
+            Microbe.to_actual_position(self.cell_position), Microbe.CELL_SIZE / 4, color
+        )
         self.energy = Microbe.FOOD_ENERGY

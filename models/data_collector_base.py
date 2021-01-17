@@ -9,10 +9,10 @@ import threading
 
 
 class DataCollector(ABC):
-    def __init__(self, world, model_name, folder='data'):
+    def __init__(self, world, model_name, folder="data"):
         self.world = world
         now = datetime.now()
-        self.name = f'{model_name}.{now.hour}h-{now.minute}m-{now.second}s'
+        self.name = f"{model_name}.{now.hour}h-{now.minute}m-{now.second}s"
         self.data_folder = folder
         self.folder = os.path.join(self.data_folder, self.name)
         self.performance = []
@@ -23,7 +23,7 @@ class DataCollector(ABC):
             x = threading.Thread(target=self._save)
             x.start()
         else:
-            logging.info('No data to save')
+            logging.info("No data to save")
 
     def _save(self):
         if os.path.isdir(self.data_folder) is False:
@@ -31,12 +31,9 @@ class DataCollector(ABC):
         if os.path.isdir(self.folder) is False:
             os.mkdir(self.folder)
         self.save_plots()
-        data = {
-            'seed': self.world.seed,
-            'time': self.world.time
-        }
+        data = {"seed": self.world.seed, "time": self.world.time}
         data.update(self.export_data())
-        with open(f'{self.folder}/raw.json', 'w+') as json_file:
+        with open(f"{self.folder}/raw.json", "w+") as json_file:
             json.dump(data, json_file)
 
     @property
@@ -53,8 +50,8 @@ class DataCollector(ABC):
     def plot_performance(self):
         fig, ax = plt.subplots()
         ax.plot([i for i in range(1, len(self.performance) + 1)], self.performance)
-        ax.set_title('Step duration (in s) over time')
-        fig.savefig(f'{self.folder}/performance.png')
+        ax.set_title("Step duration (in s) over time")
+        fig.savefig(f"{self.folder}/performance.png")
         plt.close(fig)
 
     @abstractmethod

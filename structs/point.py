@@ -57,7 +57,7 @@ class Point:
         return math.atan2(dy, dx)
 
     def find_closest(self, objects, get_position=lambda obj: obj):
-        min_distance = float('inf')
+        min_distance = float("inf")
         closest = None
         for obj in objects:
             distance = self.distance_to(get_position(obj))
@@ -94,4 +94,4 @@ class Point:
         return Point(self.x, self.y)
 
     def __str__(self):
-        return f'Point({self.x}, {self.y})'
+        return f"Point({self.x}, {self.y})"
