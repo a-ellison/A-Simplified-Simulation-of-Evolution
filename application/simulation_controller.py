@@ -76,6 +76,7 @@ class SimulationController:
 
     def pause(self):
         self.state = State.PAUSE
+        self.simulation.save()
 
     def setup(self):
         self._setup = True

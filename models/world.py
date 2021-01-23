@@ -3,7 +3,9 @@ from models.drawable import Drawable
 
 
 class World:
-    def __init__(self, width, height, seed, config):
+    def __init__(self, width, height, seed, config=None):
+        if config is None:
+            config = {}
         self.width = width
         self.height = height
         self.seed = seed

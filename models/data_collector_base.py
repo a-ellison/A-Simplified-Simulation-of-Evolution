@@ -9,12 +9,14 @@ import threading
 
 
 class DataCollector(ABC):
-    def __init__(self, world, model_name, folder="data"):
+    def __init__(self, world, **kwargs):
         self.world = world
         now = datetime.now()
-        self.name = f"{model_name}.{now.hour}h-{now.minute}m-{now.second}s"
-        self.data_folder = folder
+        self.data_folder = kwargs.get("data_folder", "data")
+        self.name = f"{kwargs.get('model_name', 'MODEL')}.{now.hour}h-{now.minute}m-{now.second}s"
         self.folder = os.path.join(self.data_folder, self.name)
+        self.should_save_plots = kwargs.get("save_plots", True)
+        self.auto_save = kwargs.get("auto_save", True)
         self.performance = []
         self._saving = False
 
@@ -23,18 +25,21 @@ class DataCollector(ABC):
             x = threading.Thread(target=self._save)
             x.start()
         else:
-            logging.info("No data to save")
+            logging.info("No data to save or busy saving")
 
     def _save(self):
+        self._saving = True
         if os.path.isdir(self.data_folder) is False:
             os.mkdir(self.data_folder)
         if os.path.isdir(self.folder) is False:
             os.mkdir(self.folder)
-        self.save_plots()
+        if self.should_save_plots:
+            self.save_plots()
         data = {"seed": self.world.seed, "time": self.world.time}
         data.update(self.export_data())
         with open(f"{self.folder}/raw.json", "w+") as json_file:
             json.dump(data, json_file)
+        self._saving = False
 
     @property
     @abstractmethod

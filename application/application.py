@@ -146,11 +146,11 @@ class Application(tkinter.Tk):
         self.bind("<e>", self.exit_action)
         self.bind("<r>", self.reset_action)
         self.bind(
-            "<Up>",
+            "<k>",
             lambda *args: self.speed.set(Speed(self.speed.get()).reduce().value),
         )
         self.bind(
-            "<Down>",
+            "<j>",
             lambda *args: self.speed.set(Speed(self.speed.get()).increment().value),
         )
 

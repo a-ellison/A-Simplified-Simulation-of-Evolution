@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 
 
 class MicrobeData(DataCollector):
-    def __init__(self, world):
-        super().__init__(world, "MICROBE")
+    def __init__(self, world, **kwargs):
+        super().__init__(world, model_name="MICROBE", **kwargs)
         self.population = []
 
     @property

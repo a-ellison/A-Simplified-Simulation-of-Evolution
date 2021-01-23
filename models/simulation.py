@@ -1,4 +1,3 @@
-import logging
 import random
 from enum import Enum
 
@@ -14,14 +13,18 @@ class Behaviors(Enum):
 
 
 class Simulation:
-    def __init__(self, world_width, world_height, behavior, seed, config):
+    def __init__(
+        self, world_width, world_height, behavior, seed, config, **data_kwargs
+    ):
         self.world_width = world_width
         self.world_height = world_height
         self.behavior = behavior
         random.seed(seed)
         self.world = World(self.world_width, self.world_height, seed, config)
         self.behavior.initialize(self.world)
-        self.data_collector = self.behavior.get_data_collector(self.world)
+        self.data_collector = self.behavior.get_data_collector(
+            self.world, **data_kwargs
+        )
 
     def step(self, speed):
         if self.behavior.is_dead(self.world):

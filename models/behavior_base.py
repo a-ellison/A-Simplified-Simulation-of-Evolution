@@ -9,7 +9,7 @@ class BehaviorBase(ABC):
 
     @classmethod
     @abstractmethod
-    def get_data_collector(cls, world):
+    def get_data_collector(cls, world, **kwargs):
         pass
 
     @classmethod
