@@ -10,6 +10,6 @@ Create conda environment from environment.yml:<br/>
 `conda env create -f environment.yml`<br/>
 Activate environment:<br/>
 `conda activate evolution-sim`<br/>
-Run `main.py` to start the application:<br/>
-`python main.py`<br/>
+Run `run.py` to start the application:<br/>
+`python run.py`<br/>
 
