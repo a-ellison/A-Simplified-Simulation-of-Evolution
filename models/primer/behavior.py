@@ -1,4 +1,3 @@
-import logging
 import time
 import math
 import random
@@ -18,22 +17,34 @@ FOOD = "FOOD"
 class PrimerBehavior(BehaviorBase):
     @classmethod
     def initialize(cls, world):
+        cls.set_constants(world)
         world.drawables[ANIMALS] = []
         world.drawables[FOOD] = []
         cls.generate_animals(world)
         cls.generate_food(world)
 
     @classmethod
-    def get_data_collector(cls, world):
-        return PrimerData(world)
+    def set_constants(cls, world):
+        width = world.width
+        r = PrimerAnimal.MIN_RADIUS
+        v = PrimerAnimal.MAX_SPEED
+        s = PrimerAnimal.MAX_SIGHT_RANGE
+        steps = width / v
+        step_cost = PrimerAnimal.calculate_step_cost(r, v, s)
+        factor = steps * step_cost / (r ** 3)
+        PrimerAnimal.MAX_ENERGY_FACTOR = factor / 2
+
+    @classmethod
+    def get_data_collector(cls, world, **kwargs):
+        return PrimerData(world, **kwargs)
 
     @classmethod
     def generate_animals(cls, world):
         species_count = max(
-            0, min(world.config.get("start_population"), world.config.get("species"))
+            0, min(world.config["start_population"], world.config["species"])
         )
         species = cls.generate_species(world.corners, species_count)
-        for i in range(world.config.get("start_population", 0)):
+        for i in range(world.config["start_population"]):
             if i % 4 == 0:
                 side = Point.TOP
             elif i % 4 == 1:
@@ -97,7 +108,7 @@ class PrimerBehavior(BehaviorBase):
                 "label": "Start Population",
             },
             "food_count": {
-                "default": 20,
+                "default": 40,
                 "label": "Food Count",
             },
             "species": {
@@ -127,7 +138,6 @@ class PrimerBehavior(BehaviorBase):
                 a for a in cls.all_animals(world) if a.is_asleep
             ]
             cls.reset_day(world)
-            logging.info("a day has passed")
         else:
             cls.orient(world)
             cls.move(world)
@@ -170,7 +180,9 @@ class PrimerBehavior(BehaviorBase):
         if animal.foods_eaten > 0:
             home = cls.find_home(animal, world)
             steps_to_home = home.distance_to(animal.position) / animal.speed
-            step_cost = animal.calculate_step_cost(animal.speed)
+            step_cost = animal.calculate_step_cost(
+                animal.radius, animal.speed, animal.sight_range
+            )
             cost_go_home = steps_to_home * step_cost
             try:
                 quotient = animal.energy / cost_go_home

@@ -13,17 +13,15 @@ class PrimerAnimal(Drawable):
     MIN_RADIUS = 3
     MAX_RADIUS = 8
     MIN_SPEED = 1
-    MAX_SPEED = 8
-    MIN_SIGHT_RANGE = 3
-    MAX_SIGHT_RANGE = 50
+    MAX_SPEED = 10
+    MIN_SIGHT_RANGE = MIN_RADIUS + 1
+    MAX_SIGHT_RANGE = 25
 
-    RADIUS_MUTATION = 0.1
-    SPEED_MUTATION = 0.14
-    SIGHT_RANGE_MUTATION = 0.5
+    RADIUS_MUTATION = (MAX_RADIUS - MIN_RADIUS) / 20  # 5 percent
+    SPEED_MUTATION = (MAX_SPEED - MIN_SPEED) / 20
+    SIGHT_RANGE_MUTATION = (MAX_SIGHT_RANGE - MIN_SIGHT_RANGE) / 20
 
-    K = 0.00375 / 2
-    MOVEMENT_COST_FACTOR = K * 1 / 9
-    SIGHT_COST_FACTOR = K
+    MAX_ENERGY_FACTOR = 1  # set from behavior
 
     MIN_EDIBLE_SIZE = 200 / 10 ** 2
     MAX_EDIBLE_SIZE = 300 / 10 ** 2
@@ -34,7 +32,7 @@ class PrimerAnimal(Drawable):
         )
         self.age = 0
         self.speed = speed
-        self.max_energy = radius ** 3
+        self.max_energy = radius ** 3 * self.MAX_ENERGY_FACTOR
         self.energy = self.max_energy
         self.sight_range = sight_range
         self.objective = None
@@ -54,17 +52,16 @@ class PrimerAnimal(Drawable):
         )
         self.last_objective = self.objective
 
-    def calculate_step_cost(self, d):
-        movement_cost = (self.radius ** 3) * (d ** 2)
-        return (
-            movement_cost * PrimerAnimal.MOVEMENT_COST_FACTOR
-            + self.sight_range * PrimerAnimal.SIGHT_COST_FACTOR
-        )
+    @classmethod
+    def calculate_step_cost(cls, r, d, s):
+        return (r ** 3) * (d ** 2) * s
 
     def apply_step_cost(self):
         if self.has_moved:
-            self.energy -= self.calculate_step_cost(
-                self.position.distance_to(self.last_position)
+            self.energy -= PrimerAnimal.calculate_step_cost(
+                self.radius,
+                self.position.distance_to(self.last_position),
+                self.sight_range,
             )
 
     @property
@@ -95,7 +92,6 @@ class PrimerAnimal(Drawable):
 
     def eat(self):
         self.foods_eaten += 1
-        # self.energy += self.max_energy * (edible.radius ** 3 / self.radius ** 3)
 
     def sleep(self):
         self.last_objective = None
