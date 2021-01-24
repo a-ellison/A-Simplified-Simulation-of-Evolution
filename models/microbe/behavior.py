@@ -12,8 +12,8 @@ from models.microbe.microbe import Microbe
 from structs.color import Color
 from structs.point import Point
 
-START_MICROBE_NUM = 10
-START_FOOD_NUM = 100
+START_POPULATION = 10
+START_FOOD = 5000
 FOOD_PER_STEP = 2
 MICROBES = "MICROBES"
 FOOD = "FOOD"
@@ -104,8 +104,9 @@ class MicrobeBehavior(BehaviorBase):
             cls.add_food(food, world)
 
         center_cell = cls.to_cell_position(world.center)
-        square_min_cell = center_cell.move_by(-int(cells_x / 16), -int(cells_y / 16))
-        square_max_cell = center_cell.move_by(int(cells_x / 16), int(cells_y / 16))
+        offset = int(min(cells_x, cells_y) / 8)
+        square_min_cell = center_cell.move_by(-offset)
+        square_max_cell = center_cell.move_by(offset)
         for i in range(n - count):
             random_square_cell = Point.random(square_min_cell, square_max_cell)
             cls.add_food(Food(random_square_cell), world)
@@ -115,14 +116,15 @@ class MicrobeBehavior(BehaviorBase):
         cells_x = int(world.width / Microbe.CELL_SIZE)
         cells_y = int(world.height / Microbe.CELL_SIZE)
         min_cell, max_cell = cls.to_cell_corners(*world.corners)
+        l = 5
         for i in range(n):
-            k = random.randint(1, 5)
+            k = random.randint(1, l - 1)
             if i % 2 == 0:
-                x = cells_x / 6 * k
+                x = cells_x / l * k
                 y = random.randint(min_cell.y, max_cell.y)
             else:
                 x = random.randint(min_cell.x, max_cell.x)
-                y = cells_y / 6 * k
+                y = cells_y / l * k
             food = Food(Point(x, y).to_int())
             cls.add_food(food, world)
 
@@ -139,11 +141,11 @@ class MicrobeBehavior(BehaviorBase):
     def get_config(cls):
         return {
             "start_population": {
-                "default": START_MICROBE_NUM,
+                "default": START_POPULATION,
                 "label": "Start Population:",
             },
             "start_food": {
-                "default": START_FOOD_NUM,
+                "default": START_FOOD,
                 "label": "Start Food:",
             },
             "food_per_step": {
@@ -158,8 +160,8 @@ class MicrobeBehavior(BehaviorBase):
         }
 
     @classmethod
-    def get_data_collector(cls, world):
-        return MicrobeData(world)
+    def get_data_collector(cls, world, **kwargs):
+        return MicrobeData(world, **kwargs)
 
     @classmethod
     def apply(cls, world, speed):
@@ -170,7 +172,6 @@ class MicrobeBehavior(BehaviorBase):
             microbe.move(min_cell, max_cell)
             if microbe.is_hungry:
                 cls.try_eat(microbe, world)
-            microbe.change_direction()
             if microbe.can_reproduce:
                 world[MICROBES].append(microbe.mutate())
             elif not microbe.is_alive:
@@ -194,7 +195,9 @@ class MicrobeBehavior(BehaviorBase):
     @classmethod
     def try_eat(cls, microbe, world):
         if cls.has_food(microbe.cell_position, world):
-            microbe.eat(cls.pop_food(microbe.cell_position, world))
+            f = cls.pop_food(microbe.cell_position, world)
+            microbe.eat(f)
+            del f
 
     @classmethod
     def pop_food(cls, cell_position, world):
