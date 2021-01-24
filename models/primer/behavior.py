@@ -32,7 +32,7 @@ class PrimerBehavior(BehaviorBase):
         steps = width / v
         step_cost = PrimerAnimal.calculate_step_cost(r, v, s)
         factor = steps * step_cost / (r ** 3)
-        PrimerAnimal.MAX_ENERGY_FACTOR = factor / 2
+        PrimerAnimal.MAX_ENERGY_FACTOR = factor
 
     @classmethod
     def get_data_collector(cls, world, **kwargs):
@@ -84,9 +84,21 @@ class PrimerBehavior(BehaviorBase):
     @classmethod
     def find_closest_food(cls, world, animal: PrimerAnimal):
         all_food = cls.all_food(world)
-        return animal.position.find_closest(
-            [food for food in all_food], get_position=lambda f: f.position
-        )
+        min_distance = float("inf")
+        pick = None
+        direction = animal.last_position.angle_to(animal.position)
+        for food in all_food:
+            angle = animal.position.angle_to(food.position)
+            delta = abs(direction - angle)
+            distance = animal.position.distance_to(food.position)
+            if (
+                delta <= animal.field_of_view / 2
+                and distance <= animal.sight_range
+                and distance < min_distance
+            ):
+                min_distance = distance
+                pick = food
+        return pick
 
     @classmethod
     def all_animals(cls, world):
@@ -218,7 +230,7 @@ class PrimerBehavior(BehaviorBase):
             new_position = world.center
         else:
             angle = animal.last_position.angle_to(animal.last_objective.position)
-            offset = math.radians(random.randint(-20, 20))
+            offset = -animal.max_turn + random.random() * (animal.max_turn * 2)
             angle += offset
             new_position = animal.position.move_to(animal.speed, angle)
             if not world.is_inside(new_position, offset=animal.radius):
@@ -240,7 +252,10 @@ class PrimerBehavior(BehaviorBase):
     @classmethod
     def try_eat(cls, world):
         for animal in cls.all_active_animals(world):
-            food = cls.find_closest_food(world, animal)
+            food = animal.position.find_closest(
+                [food for food in cls.all_food(world)],
+                get_position=lambda f: f.position,
+            )
             if (
                 animal.is_hungry
                 and food is not None

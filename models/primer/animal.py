@@ -1,3 +1,4 @@
+import math
 from enum import Enum
 
 from models.drawable import Drawable
@@ -67,6 +68,20 @@ class PrimerAnimal(Drawable):
     @property
     def has_moved(self):
         return self.last_objective is not None
+
+    @property
+    def field_of_view(self):
+        return math.pi - (
+            math.pi / (PrimerAnimal.MAX_SIGHT_RANGE - PrimerAnimal.MIN_SIGHT_RANGE)
+        ) * (self.sight_range - PrimerAnimal.MIN_SIGHT_RANGE)
+
+    @property
+    def max_turn(self):
+        return (
+            (math.pi / 2)
+            * (self.speed - PrimerAnimal.MIN_SPEED) ** 2
+            / (PrimerAnimal.MAX_SPEED - PrimerAnimal.MIN_SPEED) ** 2
+        )
 
     @property
     def is_hungry(self):
