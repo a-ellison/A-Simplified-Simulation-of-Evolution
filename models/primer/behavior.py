@@ -25,12 +25,11 @@ class PrimerBehavior(BehaviorBase):
 
     @classmethod
     def set_constants(cls, world):
-        width = world.width
-        r = PrimerAnimal.MIN_RADIUS
+        r = PrimerAnimal.MAX_RADIUS
         v = PrimerAnimal.MAX_SPEED
         s = PrimerAnimal.MAX_SIGHT_RANGE
-        steps = width / v
-        step_cost = PrimerAnimal.calculate_step_cost(r, v, s)
+        steps = (world.width / 2) / (v / r)
+        step_cost = PrimerAnimal.calculate_step_cost(r, v / r, s * r)
         factor = steps * step_cost / (r ** 3)
         PrimerAnimal.MAX_ENERGY_FACTOR = factor
 
@@ -91,11 +90,7 @@ class PrimerBehavior(BehaviorBase):
             angle = animal.position.angle_to(food.position)
             delta = abs(direction - angle)
             distance = animal.position.distance_to(food.position)
-            if (
-                delta <= animal.field_of_view / 2
-                and distance <= animal.sight_range
-                and distance < min_distance
-            ):
+            if delta <= animal.field_of_view / 2 and distance < min_distance:
                 min_distance = distance
                 pick = food
         return pick
@@ -191,9 +186,9 @@ class PrimerBehavior(BehaviorBase):
     def add_sleep_objective(cls, animal: PrimerAnimal, world):
         if animal.foods_eaten > 0:
             home = cls.find_home(animal, world)
-            steps_to_home = home.distance_to(animal.position) / animal.speed
+            steps_to_home = home.distance_to(animal.position) / animal.actual_speed
             step_cost = animal.calculate_step_cost(
-                animal.radius, animal.speed, animal.sight_range
+                animal.radius, animal.actual_speed, animal.actual_sight_range
             )
             cost_go_home = steps_to_home * step_cost
             try:
@@ -232,7 +227,7 @@ class PrimerBehavior(BehaviorBase):
             angle = animal.last_position.angle_to(animal.last_objective.position)
             offset = -animal.max_turn + random.random() * (animal.max_turn * 2)
             angle += offset
-            new_position = animal.position.move_to(animal.speed, angle)
+            new_position = animal.position.move_to(animal.actual_speed, angle)
             if not world.is_inside(new_position, offset=animal.radius):
                 new_position = world.center
         animal.add_objective(
