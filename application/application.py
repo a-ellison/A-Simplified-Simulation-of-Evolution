@@ -39,7 +39,7 @@ class Application(tkinter.Tk):
         )
         self.meta_frame = tkinter.Frame(self)
         self.controls_frame = tkinter.Frame(self.meta_frame)
-        self.behavior = tkinter.StringVar(value=Behaviors.PRIMER.name)
+        self.behavior = tkinter.StringVar(value=Behaviors.MICROBE.name)
         choices = [e.name for e in list(Behaviors)]
         # does reset if option selected
         self.behaviors = tkinter.OptionMenu(

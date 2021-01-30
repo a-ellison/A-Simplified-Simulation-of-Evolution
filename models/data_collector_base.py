@@ -1,11 +1,14 @@
 import json
 import logging
 import os
+import traceback
 from abc import ABC, abstractmethod
 from datetime import datetime
 import matplotlib.pyplot as plt
 
 import threading
+
+import numpy as np
 
 
 class DataCollector(ABC):
@@ -33,13 +36,18 @@ class DataCollector(ABC):
             os.mkdir(self.data_folder)
         if os.path.isdir(self.folder) is False:
             os.mkdir(self.folder)
-        if self.should_save_plots:
-            self.save_plots()
-        data = {"seed": self.world.seed, "time": self.world.time}
-        data.update(self.export_data())
-        with open(f"{self.folder}/raw.json", "w+") as json_file:
-            json.dump(data, json_file)
-        self._saving = False
+        try:
+            data = {"seed": self.world.seed, "time": self.world.time}
+            data.update(self.export_data())
+            with open(f"{self.folder}/raw.json", "w+") as json_file:
+                json.dump(data, json_file)
+            if self.should_save_plots:
+                self.save_plots()
+            logging.info("Data saved")
+        except Exception:
+            logging.error(f"Saving failed\n{traceback.format_exc()}")
+        finally:
+            self._saving = False
 
     @property
     @abstractmethod

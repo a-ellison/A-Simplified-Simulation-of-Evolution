@@ -12,9 +12,6 @@ from models.microbe.microbe import Microbe
 from structs.color import Color
 from structs.point import Point
 
-START_POPULATION = 10
-START_FOOD = 5000
-FOOD_PER_STEP = 2
 MICROBES = "MICROBES"
 FOOD = "FOOD"
 
@@ -141,15 +138,15 @@ class MicrobeBehavior(BehaviorBase):
     def get_config(cls):
         return {
             "start_population": {
-                "default": START_POPULATION,
+                "default": 10,
                 "label": "Start Population:",
             },
             "start_food": {
-                "default": START_FOOD,
+                "default": 5000,
                 "label": "Start Food:",
             },
             "food_per_step": {
-                "default": FOOD_PER_STEP,
+                "default": 10,
                 "label": "New food per step:",
             },
             "food_pattern": {
@@ -167,7 +164,6 @@ class MicrobeBehavior(BehaviorBase):
     def apply(cls, world, speed):
         min_cell, max_cell = cls.to_cell_corners(*world.corners)
         start = time.perf_counter()
-        cls.generate_food(world.config["food_per_step"], world)
         for microbe in world[MICROBES].copy():
             microbe.move(min_cell, max_cell)
             if microbe.is_hungry:
@@ -177,9 +173,10 @@ class MicrobeBehavior(BehaviorBase):
             elif not microbe.is_alive:
                 world[MICROBES].remove(microbe)
                 del microbe
+        cls.generate_food(world.config["food_per_step"], world)
         duration = time.perf_counter() - start
         if speed == Speed.SLOW:
-            delay = 0.17
+            delay = 0.5
         elif speed == Speed.NORMAL:
             delay = 0.017
         elif speed == Speed.FAST:
