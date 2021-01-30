@@ -1,5 +1,3 @@
-import logging
-
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -25,33 +23,16 @@ class PrimerData(DataCollector):
         self.sight_range_average = []
         self.sight_range_deviation = []
         self.known_ids = []
-        self.births = []
-        self.deaths = []
-        self.last_food_generated = self.world.config["food_count"]
+        self.food_generated = [self.world.config["food_count"]]
         self.food_eaten = []
-        self.food_left = []
         self.average_age = []
-        self.start_params = world.config.copy()
-        animals = world["ANIMALS"]
+        self.start_params = self.world.config.copy()
+        animals = self.world["ANIMALS"]
         self.population.append(len(animals))
         self.collect_traits(animals)
 
     def plot_population(self):
         fig, ax = plt.subplots()
-        # ax.bar(
-        #     [i for i in range(1, len(self.days) + 1)],
-        #     self.births,
-        #     color="green",
-        #     label="Births",
-        #     width=0.9,
-        # )
-        # ax.bar(
-        #     [i for i in range(1, len(self.days) + 1)],
-        #     [-i for i in self.deaths],
-        #     color="red",
-        #     label="Deaths",
-        #     width=0.9,
-        # )
         ax.plot(
             [i for i in range(len(self.days) + 1)],
             self.population,
@@ -67,7 +48,6 @@ class PrimerData(DataCollector):
         self.ax_plot_trait(
             ax,
             self.radius_average,
-            self.radius_deviation,
             PrimerAnimal.MIN_RADIUS,
             PrimerAnimal.MAX_RADIUS,
             "radius",
@@ -76,7 +56,6 @@ class PrimerData(DataCollector):
         self.ax_plot_trait(
             ax,
             self.speed_average,
-            self.speed_deviation,
             PrimerAnimal.MIN_SPEED,
             PrimerAnimal.MAX_SPEED,
             "speed",
@@ -85,7 +64,6 @@ class PrimerData(DataCollector):
         self.ax_plot_trait(
             ax,
             self.sight_range_average,
-            self.sight_range_deviation,
             PrimerAnimal.MIN_SIGHT_RANGE,
             PrimerAnimal.MAX_SIGHT_RANGE,
             "sight range",
@@ -96,23 +74,10 @@ class PrimerData(DataCollector):
         fig.savefig(f"{self.folder}/traits.png")
         plt.close(fig)
 
-    def ax_plot_trait(
-        self, ax, averages, deviations, min_value, max_value, label, color
-    ):
+    def ax_plot_trait(self, ax, averages, min_value, max_value, label, color):
         relative_average = self.values_to_percent(averages, min_value, max_value)
-        relative_deviation = self.values_to_percent(deviations, min_value, max_value)
-        positive_deviation = [
-            average + deviation
-            for average, deviation in zip(relative_average, relative_deviation)
-        ]
-        negative_deviation = [
-            average - deviation
-            for average, deviation in zip(relative_average, relative_deviation)
-        ]
         days = [i for i in range(len(self.days) + 1)]
-        # ax.plot(days, positive_deviation, linestyle="dotted", color=color)
         ax.plot(days, relative_average, label=label, color=color)
-        # ax.plot(days, negative_deviation, linestyle="dotted", color=color)
 
     @classmethod
     def to_percent(cls, value, min_value, max_value):
@@ -161,30 +126,24 @@ class PrimerData(DataCollector):
 
     def plot_food(self):
         fig, ax = plt.subplots()
-        ax.fill(
-            [i for i in range(1, len(self.days) + 1)],
-            [
-                self.food_eaten[i] + self.food_left[i]
-                for i in range(len(self.food_eaten))
-            ],
-            color="blue",
-            label="Eaten",
-        )
-        ax.fill(
-            [i for i in range(1, len(self.days) + 1)],
-            self.food_eaten,
+        x = [i for i in range(1, len(self.days) + 1)]
+        ax.plot(
+            x,
+            self.food_generated[:-1],
             color="green",
+            label="Available",
+        )
+        ax.fill_between(x, self.food_generated[:-1], color="green")
+        ax.plot(
+            x,
+            self.food_eaten,
+            color="red",
             label="Eaten",
         )
-        ax.fill(
-            [i for i in range(1, len(self.days) + 1)],
-            self.food_left,
-            color="red",
-            label="Not Eaten",
-        )
-        ax.set_title("Population over time")
-        fig.savefig(f"{self.folder}/food.png")
+        ax.fill_between(x, self.food_eaten, color="red")
+        ax.set_title("Food consumption over time")
         ax.legend()
+        fig.savefig(f"{self.folder}/food.png")
         plt.close(fig)
 
     def plot_age(self):
@@ -214,7 +173,7 @@ class PrimerData(DataCollector):
         data = self.start_params.copy()
         data.update(
             {
-                "days": len(self.days),
+                "days": self.days,
                 "population": self.population,
                 "average_radius": self.radius_average,
                 "average_speed": self.speed_average,
@@ -222,6 +181,8 @@ class PrimerData(DataCollector):
                 "radii": self.radii,
                 "speeds": self.speeds,
                 "sight_ranges": self.sight_ranges,
+                "food_generated": self.food_generated,
+                "food_eaten": self.food_eaten,
             }
         )
         return data
@@ -233,11 +194,10 @@ class PrimerData(DataCollector):
             self.population.append(len(animals))
             self.days.append(self.world.time)
             self.collect_traits(animals)
-            self.collect_births(animals)
-            self.last_food_generated = self.world.config["food_count"]
-            food_eaten = self.last_food_generated - len(self.known_ids)
+            # collect happens after food is regenerated so special logic needed
+            food_eaten = self.food_generated[-1] - len(self.world["FOOD"])
             self.food_eaten.append(food_eaten)
-            self.food_left.append(self.last_food_generated - food_eaten)
+            self.food_generated.append(self.world.config["food_count"])
             self.average_age.append(np.average([a.age for a in animals]))
             if self.auto_save and len(self.days) % 25 == 0:
                 self.save()
@@ -252,16 +212,3 @@ class PrimerData(DataCollector):
         self.sight_ranges = [a.sight_range for a in animals]
         self.sight_range_average.append(np.average(self.sight_ranges))
         self.sight_range_deviation.append(np.std(self.sight_ranges))
-
-    def collect_births(self, animals):
-        ids = [a.canvas_id for a in animals]
-        births = 0
-        for id in ids:
-            try:
-                i = self.known_ids.index(id)
-                del self.known_ids[i]
-            except ValueError:
-                births += 1
-        self.births.append(births)
-        self.deaths.append(len(self.known_ids))
-        self.known_ids = ids

@@ -25,11 +25,12 @@ class PrimerBehavior(BehaviorBase):
 
     @classmethod
     def set_constants(cls, world):
+        # r = PrimerAnimal.MIN_RADIUS
         r = PrimerAnimal.MAX_RADIUS
         v = PrimerAnimal.MAX_SPEED
         s = PrimerAnimal.MAX_SIGHT_RANGE
-        steps = (world.width / 2) / (v / r)
-        step_cost = PrimerAnimal.calculate_step_cost(r, v / r, s * r)
+        steps = world.width / v
+        step_cost = PrimerAnimal.calculate_step_cost(r, v, s)
         factor = steps * step_cost / (r ** 3)
         PrimerAnimal.MAX_ENERGY_FACTOR = factor
 
@@ -58,23 +59,15 @@ class PrimerBehavior(BehaviorBase):
 
     @classmethod
     def add_animal(cls, world, animal):
-        world.drawables[ANIMALS].append(animal)
+        world[ANIMALS].append(animal)
 
     @classmethod
     def add_food(cls, world, food):
-        world.drawables[FOOD].append(food)
+        world[FOOD].append(food)
 
     @classmethod
     def all_active_animals(cls, world):
-        return [a for a in world.drawables[ANIMALS] if not a.is_asleep]
-
-    @classmethod
-    def is_asleep(cls, world):
-        all_animals = cls.all_animals(world)
-        return all([a.is_asleep for a in all_animals]) or (
-            len(cls.all_food(world)) == 0
-            and all([a.is_asleep for a in all_animals if a.foods_eaten > 0])
-        )
+        return [a for a in world[ANIMALS] if not a.is_asleep]
 
     @classmethod
     def is_dead(cls, world):
@@ -141,15 +134,11 @@ class PrimerBehavior(BehaviorBase):
     def apply(cls, world, speed):
         start = time.perf_counter()
         if cls.is_asleep(world):
-            world.drawables[ANIMALS] = [
-                a for a in cls.all_animals(world) if a.is_asleep
-            ]
             cls.reset_day(world)
-        else:
-            cls.orient(world)
-            cls.move(world)
-            cls.act(world)
-            cls.reset_step(world)
+        cls.orient(world)
+        cls.move(world)
+        cls.act(world)
+        cls.reset_step(world)
         duration = time.perf_counter() - start
         if speed == Speed.SLOW:
             delay = 0.05
@@ -160,6 +149,10 @@ class PrimerBehavior(BehaviorBase):
         if duration < delay:
             time.sleep(delay - duration)
         return duration
+
+    @classmethod
+    def is_asleep(cls, world):
+        return all([a.is_asleep for a in cls.all_animals(world)])
 
     @classmethod
     def orient(cls, world):
@@ -186,9 +179,9 @@ class PrimerBehavior(BehaviorBase):
     def add_sleep_objective(cls, animal: PrimerAnimal, world):
         if animal.foods_eaten > 0:
             home = cls.find_home(animal, world)
-            steps_to_home = home.distance_to(animal.position) / animal.actual_speed
+            steps_to_home = home.distance_to(animal.position) / animal.speed
             step_cost = animal.calculate_step_cost(
-                animal.radius, animal.actual_speed, animal.actual_sight_range
+                animal.radius, animal.speed, animal.sight_range
             )
             cost_go_home = steps_to_home * step_cost
             try:
@@ -227,7 +220,7 @@ class PrimerBehavior(BehaviorBase):
             angle = animal.last_position.angle_to(animal.last_objective.position)
             offset = -animal.max_turn + random.random() * (animal.max_turn * 2)
             angle += offset
-            new_position = animal.position.move_to(animal.actual_speed, angle)
+            new_position = animal.position.move_to(animal.speed, angle)
             if not world.is_inside(new_position, offset=animal.radius):
                 new_position = world.center
         animal.add_objective(
@@ -247,17 +240,14 @@ class PrimerBehavior(BehaviorBase):
     @classmethod
     def try_eat(cls, world):
         for animal in cls.all_active_animals(world):
-            food = animal.position.find_closest(
-                [food for food in cls.all_food(world)],
-                get_position=lambda f: f.position,
-            )
-            if (
-                animal.is_hungry
-                and food is not None
-                and animal.can_reach(food.position)
-            ):
-                animal.eat()
-                cls.remove_food(world, food)
+            if animal.is_hungry and animal.objective.reason == Objective.FOOD:
+                food = animal.position.find_closest(
+                    [food for food in cls.all_food(world)],
+                    get_position=lambda f: f.position,
+                )
+                if food is not None and animal.can_reach(food.position):
+                    animal.eat()
+                    cls.remove_food(world, food)
 
     @classmethod
     def try_sleep(cls, world):
@@ -274,20 +264,22 @@ class PrimerBehavior(BehaviorBase):
 
     @classmethod
     def reset_step(cls, world):
+        has_food = len(world[FOOD])
+        alive = []
         for animal in cls.all_animals(world):
             animal.objective = None
             animal.apply_step_cost()
-        alive = []
-        for a in cls.all_animals(world):
-            if a.is_alive:
-                alive.append(a)
+            if (has_food and animal.is_alive) or (
+                not has_food and animal.foods_eaten > 0
+            ):
+                alive.append(animal)
             else:
-                del a
-        world.drawables[ANIMALS] = alive
+                del animal
+        world[ANIMALS] = alive
 
     @classmethod
     def reset_day(cls, world):
-        world.drawables[ANIMALS] = [a for a in cls.all_animals(world) if a.is_asleep]
+        world[ANIMALS] = [a for a in cls.all_animals(world) if a.is_asleep]
         cls.generate_food(world)
         for animal in cls.all_animals(world):
             if not animal.is_hungry:

@@ -1,6 +1,5 @@
 import logging
 import time
-from concurrent.futures.thread import ThreadPoolExecutor
 
 from helpers import Speed, State
 from models.primer.behavior import PrimerBehavior
@@ -11,8 +10,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger("simulation")
 
-n_runs = 5
-n_days = 200
+n_runs = 1
+n_days = 1000
 config = {
     "start_population": 40,
     "food_count": 40,
@@ -34,10 +33,10 @@ def run_sim(i):
         PrimerBehavior,
         get_seed(),
         config,
-        data_folder="../script_data/limit_energy",
+        data_folder="../script-runs/",
         auto_save=False,
     )
-    percentages = [i * 10 for i in range(1, 10)]
+    percentages = [k * 10 for k in range(1, 10)]
     logger.info(f"starting sim {i}")
     while len(sim.data_collector.days) != n_days:
         days = len(sim.data_collector.days)
@@ -49,7 +48,6 @@ def run_sim(i):
         ):
             percentages.pop(0)
             logger.info(f"sim {i} {int(percent)}% complete")
-            sim.save()
         if sim.step(Speed.FAST) == State.FINISHED:
             logger.info(f"world sim {i} died")
             break
@@ -57,8 +55,6 @@ def run_sim(i):
     logger.info(f"sim {i} saved")
 
 
-pool = ThreadPoolExecutor()
-
 if __name__ == "__main__":
     for i in range(n_runs):
-        pool.submit(run_sim, i)
+        run_sim(i)

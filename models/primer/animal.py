@@ -13,10 +13,12 @@ AnimalState = Enum("AnimalState", "ASLEEP ACTIVE")
 class PrimerAnimal(Drawable):
     MIN_RADIUS = 3
     MAX_RADIUS = 8
-    MIN_SPEED = 5
-    MAX_SPEED = 20
-    MIN_SIGHT_RANGE = 1
-    MAX_SIGHT_RANGE = 10
+    MIN_SPEED = 1
+    MAX_SPEED = 10
+    MIN_SIGHT_RANGE = MIN_RADIUS + 1
+    MAX_SIGHT_RANGE = 25
+    MIN_FOV = math.pi / 10
+    MIN_TURN = math.pi / 10
 
     RADIUS_MUTATION = (MAX_RADIUS - MIN_RADIUS) / 20  # 5 percent
     SPEED_MUTATION = (MAX_SPEED - MIN_SPEED) / 20
@@ -44,7 +46,7 @@ class PrimerAnimal(Drawable):
     def move(self, min_coordinate, max_coordinate):
         self.last_position = self.position
         distance_to_target = self.position.distance_to(self.objective.position)
-        distance = min(self.actual_speed, distance_to_target)
+        distance = min(self.speed, distance_to_target)
         angle = self.position.angle_to(self.objective.position)
         min_coordinate = min_coordinate.move_by(self.radius)
         max_coordinate = max_coordinate.move_by(-self.radius)
@@ -55,23 +57,15 @@ class PrimerAnimal(Drawable):
 
     @classmethod
     def calculate_step_cost(cls, r, d, s):
-        return (r ** 3) * (d ** 2) * s
+        return (r ** 4) * (d ** 2) * s
 
     def apply_step_cost(self):
         if self.has_moved:
             self.energy -= PrimerAnimal.calculate_step_cost(
                 self.radius,
                 self.position.distance_to(self.last_position),
-                self.actual_sight_range,
+                self.sight_range,
             )
-
-    @property
-    def actual_sight_range(self):
-        return self.radius * self.sight_range
-
-    @property
-    def actual_speed(self):
-        return self.speed / self.radius
 
     @property
     def has_moved(self):
@@ -79,9 +73,12 @@ class PrimerAnimal(Drawable):
 
     @property
     def field_of_view(self):
-        return math.pi - (
-            math.pi / (PrimerAnimal.MAX_SIGHT_RANGE - PrimerAnimal.MIN_SIGHT_RANGE)
-        ) * (self.sight_range - PrimerAnimal.MIN_SIGHT_RANGE)
+        return (
+            math.pi
+            - (math.pi / (PrimerAnimal.MAX_SIGHT_RANGE - PrimerAnimal.MIN_SIGHT_RANGE))
+            * (self.sight_range - PrimerAnimal.MIN_SIGHT_RANGE)
+            + PrimerAnimal.MIN_FOV
+        )
 
     @property
     def max_turn(self):
@@ -89,7 +86,7 @@ class PrimerAnimal(Drawable):
             (math.pi / 2)
             * (self.speed - PrimerAnimal.MIN_SPEED) ** 2
             / (PrimerAnimal.MAX_SPEED - PrimerAnimal.MIN_SPEED) ** 2
-        )
+        ) + PrimerAnimal.MIN_TURN
 
     @property
     def is_hungry(self):
@@ -104,7 +101,7 @@ class PrimerAnimal(Drawable):
         return self.state == AnimalState.ASLEEP
 
     def can_see(self, position):
-        return self.position.distance_to(position) <= self.actual_sight_range
+        return self.position.distance_to(position) <= self.sight_range
 
     def can_reach(self, position):
         return self.position.distance_to(position) - self.radius <= self.radius
