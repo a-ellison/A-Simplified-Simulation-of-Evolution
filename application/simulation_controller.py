@@ -20,10 +20,12 @@ class SimulationController:
         self.state = State.PAUSE
         self.simulation = None
         self.params = {}
-        self._setup = False
+        self._is_setup = False
+        self._is_updating = False
         self.canvas.after(17, self.canvas_refresh)
 
     def update_canvas(self):
+        self._is_updating = True
         all_canvas_ids = list(self.canvas.find_all())
         for drawable in self.simulation.all_drawables:
             if drawable.canvas_id is None:
@@ -45,9 +47,10 @@ class SimulationController:
         for unused in all_canvas_ids:
             self.canvas.delete(unused)
         self.canvas.update()
+        self._is_updating = False
 
     def canvas_refresh(self):
-        if self.state != State.PAUSE:
+        if self.state != State.PAUSE and not self._is_updating:
             self.update_canvas()
         self.canvas.after(17, self.canvas_refresh)
 
@@ -56,11 +59,7 @@ class SimulationController:
             self.state = State.RUNNING
 
             def callback(this_future):
-                # TODO: this block is unnecessary the way it is ATM
-                try:
-                    result = this_future.result()
-                except Exception:
-                    raise
+                result = this_future.result()
                 if result == State.FINISHED:
                     self.pause()
                     self.show_message("The simulation has finished")
@@ -79,7 +78,7 @@ class SimulationController:
         self.simulation.save()
 
     def setup(self):
-        self._setup = True
+        self._is_setup = True
         self.canvas.delete("all")
         if self.state != State.PAUSE:
             self.pause()
@@ -103,7 +102,7 @@ class SimulationController:
         return {k: v.get() for k, v in self.params.items()}
 
     def update_config(self):
-        if self._setup:
+        if self._is_setup:
             self.simulation.update_config(self.config)
 
     def save(self):

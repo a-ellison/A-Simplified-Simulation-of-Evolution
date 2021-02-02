@@ -162,7 +162,7 @@ class PrimerData(DataCollector):
         return len(self.days)
 
     def save_plots(self):
-        # super(PrimerData, self).save_plots()
+        super(PrimerData, self).save_plots()
         self.plot_traits()
         self.plot_distributions()
         self.plot_population()

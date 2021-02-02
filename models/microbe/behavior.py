@@ -81,8 +81,6 @@ class MicrobeBehavior(BehaviorBase):
         for i in range(count):
             min_cell, max_cell = cls.to_cell_corners(*world.corners)
             r = random.randint(0, 3)
-            if r + (i + 1) % 2 == 0:
-                continue
             # top
             if r == 0:
                 min_cell = min_cell.move_by(cells_x / 8, 0).to_int()
@@ -113,15 +111,15 @@ class MicrobeBehavior(BehaviorBase):
         cells_x = int(world.width / Microbe.CELL_SIZE)
         cells_y = int(world.height / Microbe.CELL_SIZE)
         min_cell, max_cell = cls.to_cell_corners(*world.corners)
-        l = 5
+        spaces = 6
         for i in range(n):
-            k = random.randint(1, l - 1)
+            k = random.randint(1, spaces - 1)
             if i % 2 == 0:
-                x = cells_x / l * k
+                x = cells_x / spaces * k
                 y = random.randint(min_cell.y, max_cell.y)
             else:
                 x = random.randint(min_cell.x, max_cell.x)
-                y = cells_y / l * k
+                y = cells_y / spaces * k
             food = Food(Point(x, y).to_int())
             cls.add_food(food, world)
 
@@ -147,7 +145,7 @@ class MicrobeBehavior(BehaviorBase):
             },
             "food_per_step": {
                 "default": 10,
-                "label": "New food per step:",
+                "label": "New bacteria per step:",
             },
             "food_pattern": {
                 "label": "Food generation pattern:",

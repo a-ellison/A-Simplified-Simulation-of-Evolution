@@ -1,14 +1,12 @@
 import json
 import logging
 import os
+import threading
 import traceback
 from abc import ABC, abstractmethod
 from datetime import datetime
+
 import matplotlib.pyplot as plt
-
-import threading
-
-import numpy as np
 
 
 class DataCollector(ABC):

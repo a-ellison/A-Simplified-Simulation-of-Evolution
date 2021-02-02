@@ -50,8 +50,8 @@ class Direction(Enum):
             x = 8 - diff
         return 2 ** (x - 1)
 
-    def steer(self, new):
-        return Direction((self.value + new.value) % 8)
+    def steer(self, value):
+        return Direction((self.value + value) % 8)
 
 
 class Microbe(Drawable):
@@ -73,7 +73,7 @@ class Microbe(Drawable):
             Microbe.to_actual_position(self.cell_position), Microbe.CELL_SIZE / 2, color
         )
         self.probabilities = probabilities
-        self.direction = Direction(self.probabilities.index(max(self.probabilities)))
+        self.direction = Direction(random.randint(0, 7))
         self.energy = energy
         self.age = 0
 
@@ -107,7 +107,7 @@ class Microbe(Drawable):
             s += self.probabilities[i]
             if r < s:
                 break
-        return self.direction.steer(Direction(i))
+        return self.direction.steer(i)
 
     @property
     def is_alive(self):

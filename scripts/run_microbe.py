@@ -10,22 +10,23 @@ logging.basicConfig(
 )
 logger = logging.getLogger("simulation")
 
-n_runs = 1
-n_steps = 10 ** 4
-# n_steps = 100
-seed = None
+N_RUNS = 1
+N_STEPS = 10 ** 5
+SEED = 1612255742320
+SWITCH_PATTERN = None
+
 config = {
     "start_population": 10,
     "start_food": 5000,
     "food_per_step": 10,
-    "food_pattern": FoodPattern.SQUARE.name,
+    "food_pattern": FoodPattern.LINES.name,
 }
 
 
 def get_seed():
-    if seed is None:
+    if SEED is None:
         return int(time.time() * 1000)
-    return seed
+    return SEED
 
 
 def run_sim(i):
@@ -35,23 +36,30 @@ def run_sim(i):
         MicrobeBehavior,
         get_seed(),
         config,
-        data_folder="../script-runs/",
+        data_folder="../script-runs/redo-square/",
+        # save_plots=False,
         auto_save=False,
     )
     percentages = [k * 10 for k in range(1, 10)]
     logger.info(f"starting sim {i}")
-    while sim.world.time != n_steps:
-        percent = sim.world.time / n_steps * 100
+    while sim.world.time != N_STEPS:
+        if SWITCH_PATTERN is not None and sim.world.time == N_STEPS / 2:
+            logger.info("Switching to %s" % SWITCH_PATTERN)
+            sim.world.config["food_pattern"] = SWITCH_PATTERN
+        percent = sim.world.time / N_STEPS * 100
         if percentages and percent >= percentages[0]:
             percentages.pop(0)
             logger.info(f"microbe sim {i} {int(percent)}% complete")
         if sim.step(Speed.FAST) == State.FINISHED:
             logger.info(f"world microbe sim {i} died")
-            break
+            return False
     sim.save()
     logger.info(f"saving microbe sim {i}")
+    return True
 
 
 if __name__ == "__main__":
-    for i in range(n_runs):
-        run_sim(i)
+    for i in range(N_RUNS):
+        success = run_sim(i)
+        while not success:
+            success = run_sim(i)
