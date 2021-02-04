@@ -4,18 +4,12 @@ from abc import ABC, abstractmethod
 class BehaviorBase(ABC):
     @classmethod
     @abstractmethod
-    def initialize(cls, world):
-        pass
-
-    @classmethod
-    @abstractmethod
     def get_data_collector(cls, world, **kwargs):
         pass
 
     @classmethod
-    @abstractmethod
-    def apply(cls, world, speed):
-        pass
+    def get_config(cls):
+        return {}
 
     @classmethod
     @abstractmethod
@@ -23,5 +17,11 @@ class BehaviorBase(ABC):
         pass
 
     @classmethod
-    def get_config(cls):
-        return {}
+    @abstractmethod
+    def initialize(cls, world):
+        pass
+
+    @classmethod
+    @abstractmethod
+    def apply(cls, world, speed):
+        pass

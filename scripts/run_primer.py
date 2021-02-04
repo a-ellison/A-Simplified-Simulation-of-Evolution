@@ -10,20 +10,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger("simulation")
 
-n_runs = 1
-n_days = 1000
+N_RUNS = 1
+N_DAYS = 1000
+SEED = None
+
 config = {
     "start_population": 40,
     "food_count": 40,
     "species": 20,
 }
-seed = None
 
 
 def get_seed():
-    if seed is None:
+    if SEED is None:
         return int(time.time() * 1000)
-    return seed
+    return SEED
 
 
 def run_sim(i):
@@ -33,14 +34,14 @@ def run_sim(i):
         PrimerBehavior,
         get_seed(),
         config,
-        data_folder="../script-runs/",
+        data_folder="../script-data/",
         auto_save=False,
     )
     percentages = [k * 10 for k in range(1, 10)]
     logger.info(f"starting sim {i}")
-    while len(sim.data_collector.days) != n_days:
+    while len(sim.data_collector.days) != N_DAYS:
         days = len(sim.data_collector.days)
-        percent = days / n_days * 100
+        percent = days / N_DAYS * 100
         if (
             percentages
             and percent >= percentages[0]
@@ -56,5 +57,5 @@ def run_sim(i):
 
 
 if __name__ == "__main__":
-    for i in range(n_runs):
+    for i in range(N_RUNS):
         run_sim(i)

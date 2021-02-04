@@ -24,6 +24,23 @@ class MicrobeData(DataCollector):
     def has_data(self):
         return True
 
+    def export_data(self):
+        data = self.start_params.copy()
+        data.update(
+            {
+                "population": self.population,
+                "food_available": self.food_available,
+                "food_eaten": self.food_eaten,
+                "food_generated": self.food_generated,
+                "probabilities": self.probabilities,
+                "average_probabilities": self.average_probabilities,
+                "average_age": self.average_age,
+                "directions": self.directions,
+                "direction_popularity": self.direction_popularity,
+            }
+        )
+        return data
+
     def collect(self, duration):
         super(MicrobeData, self).collect(duration)
         microbes = self.world["MICROBES"]
@@ -33,8 +50,8 @@ class MicrobeData(DataCollector):
         for i in range(8):
             probability_averages.append(np.average([p[i] for p in self.probabilities]))
         self.average_probabilities.append(probability_averages)
-        popularity = [0 for _ in range(8)]
         self.directions = [m.direction.value for m in microbes]
+        popularity = [0 for _ in range(8)]
         for d in self.directions:
             popularity[d] += 1
         self.direction_popularity.append(popularity)
@@ -48,46 +65,52 @@ class MicrobeData(DataCollector):
         if self.auto_save and self.world.time % 1000 == 0:
             self.save()
 
+    def save_plots(self):
+        super(MicrobeData, self).save_plots()
+        self.plot_population()
+        self.plot_food()
+        self.plot_probability_averages()
+        self.plot_probability_distributions()
+        self.plot_age_energy()
+        self.plot_direction_popularity()
+        self.plot_direction_distribution()
+
     def plot_population(self):
         fig, (ax_population, ax_food) = plt.subplots(2, 1, sharex=True)
-        x = [i for i in range(self.world.time + 1)]
-        ax_population.plot(x, self.population, label="Microbes", color="blue")
+        ax_population.plot(self.population, label="Microbes", color="blue")
         ax_population.legend()
-        ax_food.plot(x, self.food_available, label="Bacteria", color="green")
+        ax_food.plot(self.food_available, label="Bacteria", color="green")
         ax_food.legend()
         fig.suptitle("Microbe/Bacteria population over time")
         fig.savefig(f"{self.folder}/population.png")
         plt.close(fig)
 
+    def plot_food(self):
+        fig, ax = plt.subplots()
+        ax.bar(
+            [i for i in range(self.world.time)],
+            self.food_eaten,
+            color="red",
+            label="Eaten",
+        )
+        ax.plot(
+            self.food_generated,
+            color="green",
+            label="Generated",
+        )
+        ax.set_title("Food consumption over time")
+        ax.legend()
+        fig.savefig(f"{self.folder}/food.png")
+        plt.close(fig)
+
     def plot_probability_averages(self):
         fig, ax = plt.subplots()
-        x = [i for i in range(self.world.time)]
         for i in range(8):
             averages = [p[i] for p in self.average_probabilities]
-            ax.plot(x, averages, label="$p_{%d}$" % i)
+            ax.plot(averages, label="$p_{%d}$" % i)
         ax.legend()
         fig.suptitle("Average probabilities over time")
         fig.savefig(f"{self.folder}/average-probabilities.png")
-        plt.close(fig)
-
-    def plot_age_energy(self):
-        fig, (ax_age, ax_energy) = plt.subplots(2, 1, sharex=True)
-        ax_age.plot(
-            [i for i in range(self.world.time)],
-            self.average_age,
-            label="Age",
-            color="black",
-        )
-        ax_age.legend()
-        ax_energy.plot(
-            [i for i in range(self.world.time)],
-            self.average_energy,
-            label="Energy",
-            color="blue",
-        )
-        ax_energy.legend()
-        fig.suptitle("Average age and energy")
-        fig.savefig(f"{self.folder}/age-energy.png")
         plt.close(fig)
 
     def plot_probability_distributions(self):
@@ -100,7 +123,6 @@ class MicrobeData(DataCollector):
                         [a[i + k] for a in self.probabilities],
                         label=r"$p_{%d}$" % (i + k),
                         bins="auto",
-                        # color="blue",
                         rwidth=0.85,
                     )
                     ax.legend()
@@ -109,6 +131,24 @@ class MicrobeData(DataCollector):
                 )
                 fig.savefig(f"{self.folder}/probability-distributions-p{i},{i + 1}.png")
                 plt.close(fig)
+
+    def plot_age_energy(self):
+        fig, (ax_age, ax_energy) = plt.subplots(2, 1, sharex=True)
+        ax_age.plot(
+            self.average_age,
+            label="Age",
+            color="black",
+        )
+        ax_age.legend()
+        ax_energy.plot(
+            self.average_energy,
+            label="Energy",
+            color="blue",
+        )
+        ax_energy.legend()
+        fig.suptitle("Average age and energy")
+        fig.savefig(f"{self.folder}/age-energy.png")
+        plt.close(fig)
 
     def plot_direction_popularity(self):
         fig, ax = plt.subplots()
@@ -130,49 +170,3 @@ class MicrobeData(DataCollector):
         fig.suptitle("Distribution of directions")
         fig.savefig(f"{self.folder}/direction-distributions.png")
         plt.close(fig)
-
-    def plot_food(self):
-        fig, ax = plt.subplots()
-        ax.bar(
-            [i for i in range(self.world.time)],
-            self.food_eaten,
-            color="red",
-            label="Eaten",
-        )
-        ax.plot(
-            [i for i in range(1, self.world.time + 1)],
-            self.food_generated,
-            color="green",
-            label="Generated",
-        )
-        ax.set_title("Food consumption over time")
-        ax.legend()
-        fig.savefig(f"{self.folder}/food.png")
-        plt.close(fig)
-
-    def save_plots(self):
-        super(MicrobeData, self).save_plots()
-        self.plot_population()
-        self.plot_food()
-        self.plot_probability_distributions()
-        self.plot_probability_averages()
-        self.plot_age_energy()
-        self.plot_direction_distribution()
-        self.plot_direction_popularity()
-
-    def export_data(self):
-        data = self.start_params.copy()
-        data.update(
-            {
-                "population": self.population,
-                "food_available": self.food_available,
-                "food_eaten": self.food_eaten,
-                "food_generated": self.food_generated,
-                "probabilities": self.probabilities,
-                "average_probabilities": self.average_probabilities,
-                "average_age": self.average_age,
-                "directions": self.directions,
-                "direction_popularity": self.direction_popularity,
-            }
-        )
-        return data

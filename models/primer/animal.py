@@ -1,4 +1,5 @@
 import math
+import random
 from enum import Enum
 
 from models.drawable import Drawable
@@ -8,6 +9,11 @@ import helpers
 from structs.point import Point
 
 AnimalState = Enum("AnimalState", "ASLEEP ACTIVE")
+
+
+def mutate_value(min_value, max_value, current_value, mutation):
+    delta = random.choice([-mutation, 0, mutation])
+    return max(min(max_value, current_value + delta), min_value)
 
 
 class PrimerAnimal(Drawable):
@@ -26,9 +32,6 @@ class PrimerAnimal(Drawable):
 
     MAX_ENERGY_FACTOR = 1  # set from behavior
 
-    MIN_EDIBLE_SIZE = 200 / 10 ** 2
-    MAX_EDIBLE_SIZE = 300 / 10 ** 2
-
     def __init__(self, position, radius, speed, sight_range):
         super().__init__(
             position, radius, PrimerAnimal.calculate_color(radius, speed, sight_range)
@@ -43,6 +46,10 @@ class PrimerAnimal(Drawable):
         self.foods_eaten = 0
         self.state = AnimalState.ACTIVE
 
+    @classmethod
+    def calculate_step_cost(cls, r, d, s):
+        return (r ** 4) * (d ** 2) * s
+
     def move(self, min_coordinate, max_coordinate):
         self.last_position = self.position
         distance_to_target = self.position.distance_to(self.objective.position)
@@ -54,10 +61,6 @@ class PrimerAnimal(Drawable):
             min_coordinate, max_coordinate
         )
         self.last_objective = self.objective
-
-    @classmethod
-    def calculate_step_cost(cls, r, d, s):
-        return (r ** 4) * (d ** 2) * s
 
     def apply_step_cost(self):
         if self.has_moved:
@@ -104,7 +107,7 @@ class PrimerAnimal(Drawable):
         return self.position.distance_to(position) <= self.sight_range
 
     def can_reach(self, position):
-        return self.position.distance_to(position) - self.radius <= self.radius
+        return self.position.distance_to(position) <= 2 * self.radius
 
     def add_objective(self, new_objective):
         if self.objective is None or new_objective.intensity > self.objective.intensity:
@@ -124,19 +127,19 @@ class PrimerAnimal(Drawable):
         self.foods_eaten = 0
 
     def mutate(self):
-        mutated_radius = helpers.mutate_value(
+        mutated_radius = mutate_value(
             PrimerAnimal.MIN_RADIUS,
             PrimerAnimal.MAX_RADIUS,
             self.radius,
             PrimerAnimal.RADIUS_MUTATION,
         )
-        mutated_speed = helpers.mutate_value(
+        mutated_speed = mutate_value(
             PrimerAnimal.MIN_SPEED,
             PrimerAnimal.MAX_SPEED,
             self.speed,
             PrimerAnimal.SPEED_MUTATION,
         )
-        mutated_sight_range = helpers.mutate_value(
+        mutated_sight_range = mutate_value(
             PrimerAnimal.MIN_SIGHT_RANGE,
             PrimerAnimal.MAX_SIGHT_RANGE,
             self.sight_range,
@@ -176,17 +179,15 @@ class PrimerAnimal(Drawable):
     def random(cls, min_coordinate, max_coordinate, side=None, **kwargs):
         radius = kwargs.get(
             "radius",
-            helpers.random_decimal(PrimerAnimal.MIN_RADIUS, PrimerAnimal.MAX_RADIUS),
+            random.uniform(PrimerAnimal.MIN_RADIUS, PrimerAnimal.MAX_RADIUS),
         )
         speed = kwargs.get(
             "speed",
-            helpers.random_decimal(PrimerAnimal.MIN_SPEED, PrimerAnimal.MAX_SPEED),
+            random.uniform(PrimerAnimal.MIN_SPEED, PrimerAnimal.MAX_SPEED),
         )
         sight_range = kwargs.get(
             "sight_range",
-            helpers.random_decimal(
-                PrimerAnimal.MIN_SIGHT_RANGE, PrimerAnimal.MAX_SIGHT_RANGE
-            ),
+            random.uniform(PrimerAnimal.MIN_SIGHT_RANGE, PrimerAnimal.MAX_SIGHT_RANGE),
         )
         min_coordinate = min_coordinate.move_by(radius)
         max_coordinate = max_coordinate.move_by(-radius)

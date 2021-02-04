@@ -16,8 +16,8 @@ def _create_circle(self, x, y, r, **kwargs):
 
 tkinter.Canvas.create_circle = _create_circle
 
-DEFAULT_WINDOW_WIDTH = 600
-DEFAULT_WINDOW_HEIGHT = 400
+DEFAULT_WINDOW_WIDTH = 1200
+DEFAULT_WINDOW_HEIGHT = 800
 APPLICATION_TITLE = "A Simplified Simulation of Evolution"
 WIDGET_SPACING = 10
 
@@ -39,14 +39,16 @@ class Application(tkinter.Tk):
         )
         self.meta_frame = tkinter.Frame(self)
         self.controls_frame = tkinter.Frame(self.meta_frame)
-        self.behavior = tkinter.StringVar(value=Behaviors.MICROBE.name)
-        choices = [e.name for e in list(Behaviors)]
+        # PRIMER model is the default
+        self.behavior = tkinter.StringVar(value=Behaviors.PRIMER.name)
+        models = [e.name for e in list(Behaviors)]
         # does reset if option selected
         self.behaviors = tkinter.OptionMenu(
-            self.controls_frame, self.behavior, *choices, command=self.model_changed
+            self.controls_frame, self.behavior, *models, command=self.on_model_changed
         )
         self.speed_label = tkinter.Label(self.controls_frame, text="Speed:")
         self.speeds = tkinter.Frame(self.controls_frame)
+        # default speed is NORMAL
         self.speed = tkinter.IntVar(value=Speed.NORMAL.value)
         self.slow_radiobutton = tkinter.Radiobutton(
             self.speeds, text="Slow", variable=self.speed, value=Speed.SLOW.value
@@ -58,6 +60,7 @@ class Application(tkinter.Tk):
             self.speeds, text="Fast", variable=self.speed, value=Speed.FAST.value
         )
         self.seed_label = tkinter.Label(self.controls_frame, text="Random seed:")
+        # default is empty string so seed is picked automatically
         self.seed = tkinter.StringVar(value="")
         validate_seed = (self.register(self.is_valid_seed), "%P")
         self.seed_entry = tkinter.Entry(
@@ -110,13 +113,7 @@ class Application(tkinter.Tk):
     def is_valid_seed(cls, new_value):
         return new_value == "" or cls.is_valid_entry(new_value)
 
-    @classmethod
-    def validate_param(cls, new_value):
-        if cls.is_valid_entry(new_value):
-            return True
-        return False
-
-    def param_updated(self, *args):
+    def on_param_updated(self, *args):
         self.simulation_controller.update_config()
 
     def reset_action(self, *args):
@@ -132,7 +129,7 @@ class Application(tkinter.Tk):
             logging.info("Exiting...")
             self.quit()
 
-    def model_changed(self, *args):
+    def on_model_changed(self, *args):
         self.clear_param_widgets()
         self.simulation_controller.params = self.create_param_widgets()
         self.reset_action()
@@ -145,10 +142,12 @@ class Application(tkinter.Tk):
         self.bind("<space>", self.play_pause_action)
         self.bind("<e>", self.exit_action)
         self.bind("<r>", self.reset_action)
+        # reduce simulation speed
         self.bind(
             "<k>",
             lambda *args: self.speed.set(Speed(self.speed.get()).reduce().value),
         )
+        # increase simulation speed
         self.bind(
             "<j>",
             lambda *args: self.speed.set(Speed(self.speed.get()).increment().value),
@@ -169,7 +168,7 @@ class Application(tkinter.Tk):
         return params
 
     def create_radio_param(self, param, count):
-        options = param.get("options", ["empty"])
+        options = param.get("options", [""])
         label = tkinter.Label(self.params_frame, text=param.get("label", ""))
         radio_var = tkinter.StringVar(value=options[0])
         radio_frame = tkinter.Frame(self.params_frame)
@@ -179,7 +178,7 @@ class Application(tkinter.Tk):
                 text=option,
                 variable=radio_var,
                 value=option,
-                command=self.param_updated,
+                command=self.on_param_updated,
             )
             radio.pack(anchor=tkinter.W)
         label.grid(column=count, row=0)
@@ -189,7 +188,8 @@ class Application(tkinter.Tk):
     def create_entry_param(self, param, count):
         label = tkinter.Label(self.params_frame, text=param.get("label", ""))
         var = tkinter.IntVar(value=param.get("default", 0))
-        var.trace("w", self.param_updated)
+        # subscribe to event for when parameter is changed
+        var.trace("w", self.on_param_updated)
         validate = (self.register(self.is_valid_entry), "%P")
         entry = tkinter.Spinbox(
             self.params_frame,

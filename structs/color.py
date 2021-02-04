@@ -8,17 +8,13 @@ class Color(object):
         self.b = b
 
     @classmethod
-    def random_hex_string(cls):
-        return Color.random().to_hex()
-
-    @classmethod
     def random(cls):
         r = random.randint(0, 255)
         g = random.randint(0, 255)
         b = random.randint(0, 255)
         return Color(r, g, b)
 
-    # uses Tkinter color formatting
+    # Tkinter color formatting
     def to_hex(self):
         return "#%02x%02x%02x" % (self.r, self.g, self.b)
 

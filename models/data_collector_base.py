@@ -21,12 +21,36 @@ class DataCollector(ABC):
         self.performance = []
         self._saving = False
 
+    @property
+    @abstractmethod
+    def has_data(self):
+        pass
+
+    @abstractmethod
+    def export_data(self):
+        pass
+
+    def collect(self, duration):
+        self.performance.append(duration)
+
+    def save_plots(self):
+        self.plot_performance()
+
+    def plot_performance(self):
+        fig, ax = plt.subplots()
+        ax.plot(self.performance)
+        ax.set_title("Step duration (in s) over time")
+        fig.savefig(f"{self.folder}/performance.png")
+        plt.close(fig)
+
     def save(self):
-        if not self._saving and self.has_data:
+        if self._saving:
+            logging.info("Busy saving")
+        elif not self.has_data:
+            logging.info("No data to save")
+        else:
             x = threading.Thread(target=self._save)
             x.start()
-        else:
-            logging.info("No data to save or busy saving")
 
     def _save(self):
         self._saving = True
@@ -46,25 +70,3 @@ class DataCollector(ABC):
             logging.error(f"Saving failed\n{traceback.format_exc()}")
         finally:
             self._saving = False
-
-    @property
-    @abstractmethod
-    def has_data(self):
-        pass
-
-    def collect(self, duration):
-        self.performance.append(duration)
-
-    def save_plots(self):
-        self.plot_performance()
-
-    def plot_performance(self):
-        fig, ax = plt.subplots()
-        ax.plot([i for i in range(1, len(self.performance) + 1)], self.performance)
-        ax.set_title("Step duration (in s) over time")
-        fig.savefig(f"{self.folder}/performance.png")
-        plt.close(fig)
-
-    @abstractmethod
-    def export_data(self):
-        pass

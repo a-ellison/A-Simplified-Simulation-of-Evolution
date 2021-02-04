@@ -1,5 +1,4 @@
 import time
-import math
 import random
 
 from helpers import Speed
@@ -16,6 +15,31 @@ FOOD = "FOOD"
 
 class PrimerBehavior(BehaviorBase):
     @classmethod
+    def get_data_collector(cls, world, **kwargs):
+        return PrimerData(world, **kwargs)
+
+    @classmethod
+    def get_config(cls):
+        return {
+            "start_population": {
+                "default": 40,
+                "label": "Start Population",
+            },
+            "food_count": {
+                "default": 40,
+                "label": "Food Count",
+            },
+            "species": {
+                "default": 3,
+                "label": "Species",
+            },
+        }
+
+    @classmethod
+    def is_dead(cls, world):
+        return not len(cls.all_animals(world))
+
+    @classmethod
     def initialize(cls, world):
         cls.set_constants(world)
         world.drawables[ANIMALS] = []
@@ -25,7 +49,6 @@ class PrimerBehavior(BehaviorBase):
 
     @classmethod
     def set_constants(cls, world):
-        # r = PrimerAnimal.MIN_RADIUS
         r = PrimerAnimal.MAX_RADIUS
         v = PrimerAnimal.MAX_SPEED
         s = PrimerAnimal.MAX_SIGHT_RANGE
@@ -33,10 +56,6 @@ class PrimerBehavior(BehaviorBase):
         step_cost = PrimerAnimal.calculate_step_cost(r, v, s)
         factor = steps * step_cost / (r ** 3)
         PrimerAnimal.MAX_ENERGY_FACTOR = factor
-
-    @classmethod
-    def get_data_collector(cls, world, **kwargs):
-        return PrimerData(world, **kwargs)
 
     @classmethod
     def generate_animals(cls, world):
@@ -58,35 +77,12 @@ class PrimerBehavior(BehaviorBase):
             cls.add_animal(world, new_animal)
 
     @classmethod
+    def generate_species(cls, corners, n):
+        return [PrimerAnimal.random(*corners).traits for _ in range(n)]
+
+    @classmethod
     def add_animal(cls, world, animal):
         world[ANIMALS].append(animal)
-
-    @classmethod
-    def add_food(cls, world, food):
-        world[FOOD].append(food)
-
-    @classmethod
-    def all_active_animals(cls, world):
-        return [a for a in world[ANIMALS] if not a.is_asleep]
-
-    @classmethod
-    def is_dead(cls, world):
-        return not len(cls.all_animals(world))
-
-    @classmethod
-    def find_closest_food(cls, world, animal: PrimerAnimal):
-        all_food = cls.all_food(world)
-        min_distance = float("inf")
-        pick = None
-        direction = animal.last_position.angle_to(animal.position)
-        for food in all_food:
-            angle = animal.position.angle_to(food.position)
-            delta = abs(direction - angle)
-            distance = animal.position.distance_to(food.position)
-            if delta <= animal.field_of_view / 2 and distance < min_distance:
-                min_distance = distance
-                pick = food
-        return pick
 
     @classmethod
     def all_animals(cls, world):
@@ -101,34 +97,18 @@ class PrimerBehavior(BehaviorBase):
         world.drawables[FOOD].remove(food)
 
     @classmethod
-    def get_config(cls):
-        return {
-            "start_population": {
-                "default": 40,
-                "label": "Start Population",
-            },
-            "food_count": {
-                "default": 40,
-                "label": "Food Count",
-            },
-            "species": {
-                "default": 3,
-                "label": "Species",
-            },
-        }
-
-    @classmethod
-    def generate_species(cls, corners, n):
-        return [PrimerAnimal.random(*corners).traits for _ in range(n)]
-
-    @classmethod
     def generate_food(cls, world):
         for i in range(world.config.get("food_count", 0)):
+            # food is 1/6 * width away from the edges
             min_coordinate = Point(int(world.width / 6), int(world.height / 6))
             max_coordinate = Point(int(world.width * 5 / 6), int(world.height * 5 / 6))
             position = Point.random(min_coordinate, max_coordinate)
             food = Edible(position)
             cls.add_food(world, food)
+
+    @classmethod
+    def add_food(cls, world, food):
+        world[FOOD].append(food)
 
     @classmethod
     def apply(cls, world, speed):
@@ -155,6 +135,17 @@ class PrimerBehavior(BehaviorBase):
         return all([a.is_asleep for a in cls.all_animals(world)])
 
     @classmethod
+    def reset_day(cls, world):
+        world[ANIMALS] = [a for a in cls.all_animals(world) if a.is_asleep]
+        cls.generate_food(world)
+        for animal in cls.all_animals(world):
+            if not animal.is_hungry:
+                child = animal.mutate()
+                cls.add_animal(world, child)
+            animal.wake_up()
+            animal.age += 1
+
+    @classmethod
     def orient(cls, world):
         for animal in cls.all_active_animals(world):
             # if intensity is equal, first one is chosen
@@ -163,10 +154,14 @@ class PrimerBehavior(BehaviorBase):
             cls.add_wander_objective(animal, world)
 
     @classmethod
-    def add_food_objective(cls, animal: PrimerAnimal, world):
+    def all_active_animals(cls, world):
+        return [a for a in world[ANIMALS] if not a.is_asleep]
+
+    @classmethod
+    def add_food_objective(cls, animal, world):
         if animal.is_hungry:
-            food = cls.find_closest_food(world, animal)
-            if food is not None and animal.can_see(food.position):
+            food = cls.find_closest_visible_food(world, animal)
+            if food is not None:
                 if animal.foods_eaten == 0:
                     intensity = Objective.HIGH
                 else:
@@ -176,7 +171,26 @@ class PrimerBehavior(BehaviorBase):
                 )
 
     @classmethod
-    def add_sleep_objective(cls, animal: PrimerAnimal, world):
+    def find_closest_visible_food(cls, world, animal):
+        all_food = cls.all_food(world)
+        min_distance = float("inf")
+        pick = None
+        direction = animal.last_position.angle_to(animal.position)
+        for food in all_food:
+            angle = animal.position.angle_to(food.position)
+            delta = abs(direction - angle)
+            distance = animal.position.distance_to(food.position)
+            if (
+                distance < min_distance
+                and delta <= animal.field_of_view / 2
+                and animal.can_see(food.position)
+            ):
+                min_distance = distance
+                pick = food
+        return pick
+
+    @classmethod
+    def add_sleep_objective(cls, animal, world):
         if animal.foods_eaten > 0:
             home = cls.find_home(animal, world)
             steps_to_home = home.distance_to(animal.position) / animal.speed
@@ -215,17 +229,14 @@ class PrimerBehavior(BehaviorBase):
     @classmethod
     def add_wander_objective(cls, animal: PrimerAnimal, world):
         if not animal.has_moved:
-            new_position = world.center
+            new_target = world.center
         else:
             angle = animal.last_position.angle_to(animal.last_objective.position)
-            offset = -animal.max_turn + random.random() * (animal.max_turn * 2)
-            angle += offset
-            new_position = animal.position.move_to(animal.speed, angle)
-            if not world.is_inside(new_position, offset=animal.radius):
-                new_position = world.center
-        animal.add_objective(
-            Objective(new_position, Objective.MEDIUM, Objective.WANDER)
-        )
+            angle += random.uniform(-animal.max_turn, animal.max_turn)
+            new_target = animal.position.move_to(animal.speed, angle)
+            if not world.is_inside(new_target, offset=animal.radius):
+                new_target = world.center
+        animal.add_objective(Objective(new_target, Objective.MEDIUM, Objective.WANDER))
 
     @classmethod
     def move(cls, world):
@@ -241,10 +252,7 @@ class PrimerBehavior(BehaviorBase):
     def try_eat(cls, world):
         for animal in cls.all_active_animals(world):
             if animal.is_hungry and animal.objective.reason == Objective.FOOD:
-                food = animal.position.find_closest(
-                    [food for food in cls.all_food(world)],
-                    get_position=lambda f: f.position,
-                )
+                food = cls.find_closest_visible_food(world, animal)
                 if food is not None and animal.can_reach(food.position):
                     animal.eat()
                     cls.remove_food(world, food)
@@ -252,11 +260,7 @@ class PrimerBehavior(BehaviorBase):
     @classmethod
     def try_sleep(cls, world):
         for animal in cls.all_active_animals(world):
-            wants_sleep = (
-                animal.objective is not None
-                and animal.objective.reason == Objective.SLEEP
-            )
-            if animal.foods_eaten > 0 and wants_sleep:
+            if animal.foods_eaten > 0 and animal.objective.reason == Objective.SLEEP:
                 home = cls.find_home(animal, world)
                 distance_to_home = animal.position.distance_to(home)
                 if distance_to_home == 0:
@@ -264,29 +268,18 @@ class PrimerBehavior(BehaviorBase):
 
     @classmethod
     def reset_step(cls, world):
-        has_food = len(world[FOOD])
+        world_has_food = bool(len(world[FOOD]))
         alive = []
         for animal in cls.all_animals(world):
             animal.objective = None
             animal.apply_step_cost()
-            if (has_food and animal.is_alive) or (
-                not has_food and animal.foods_eaten > 0
+            if (world_has_food and animal.is_alive) or (
+                not world_has_food and animal.foods_eaten > 0
             ):
                 alive.append(animal)
             else:
                 del animal
         world[ANIMALS] = alive
-
-    @classmethod
-    def reset_day(cls, world):
-        world[ANIMALS] = [a for a in cls.all_animals(world) if a.is_asleep]
-        cls.generate_food(world)
-        for animal in cls.all_animals(world):
-            if not animal.is_hungry:
-                child = animal.mutate()
-                cls.add_animal(world, child)
-            animal.wake_up()
-            animal.age += 1
 
 
 class Objective:
@@ -305,7 +298,5 @@ class Objective:
 
 
 class Edible(Drawable):
-    EDIBLE_RADIUS = 2.5
-
     def __init__(self, position):
-        super().__init__(position, self.EDIBLE_RADIUS, Color(255, 255, 255))
+        super().__init__(position, 2.5, Color(255, 255, 255))

@@ -14,14 +14,17 @@ class SimulationController:
         self.canvas = canvas
         self.canvas_width = canvas_width
         self.canvas_height = canvas_height
+        # Tkinter variables
         self.behavior_var = behavior_var
         self.speed_var = speed_var
         self.seed_var = seed_var
         self.state = State.PAUSE
         self.simulation = None
+        # model parameters given to world
         self.params = {}
         self._is_setup = False
         self._is_updating = False
+        # start loop to refresh canvas every 17 ms
         self.canvas.after(17, self.canvas_refresh)
 
     def update_canvas(self):
@@ -38,6 +41,7 @@ class SimulationController:
             else:
                 dx = drawable.position.x - drawable.last_drawn_position.x
                 dy = drawable.position.y - drawable.last_drawn_position.y
+                # only move if position changed
                 if dx or dy:
                     self.canvas.move(drawable.canvas_id, dx, dy)
                 drawable.last_drawn_position = Point(
@@ -60,13 +64,13 @@ class SimulationController:
 
             def callback(this_future):
                 result = this_future.result()
+                # all agents have died
                 if result == State.FINISHED:
                     self.pause()
                     self.show_message("The simulation has finished")
-                else:
-                    if self.state != State.PAUSE:
-                        self.state = State.PLAY
-                        self.play()
+                elif self.state != State.PAUSE:
+                    self.state = State.PLAY
+                    self.play()
 
             future = thread_pool.submit(
                 self.simulation.step, Speed(self.speed_var.get())

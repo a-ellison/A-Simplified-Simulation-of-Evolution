@@ -12,14 +12,14 @@ logger = logging.getLogger("simulation")
 
 N_RUNS = 1
 N_STEPS = 10 ** 5
-SEED = 1612255742320
+SEED = None
 SWITCH_PATTERN = None
 
 config = {
     "start_population": 10,
     "start_food": 5000,
     "food_per_step": 10,
-    "food_pattern": FoodPattern.LINES.name,
+    "food_pattern": FoodPattern.EVEN.name,
 }
 
 
@@ -36,8 +36,7 @@ def run_sim(i):
         MicrobeBehavior,
         get_seed(),
         config,
-        data_folder="../script-runs/redo-square/",
-        # save_plots=False,
+        data_folder="../script-data/",
         auto_save=False,
     )
     percentages = [k * 10 for k in range(1, 10)]

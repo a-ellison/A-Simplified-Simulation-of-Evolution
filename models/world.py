@@ -1,5 +1,4 @@
 from structs.point import Point
-from models.drawable import Drawable
 
 
 class World:

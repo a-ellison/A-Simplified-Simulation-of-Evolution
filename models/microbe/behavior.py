@@ -1,4 +1,3 @@
-import logging
 import math
 import random
 import time
@@ -20,12 +19,51 @@ FoodPattern = Enum("FoodPattern", "EVEN SQUARE LINES")
 
 class MicrobeBehavior(BehaviorBase):
     @classmethod
+    def get_data_collector(cls, world, **kwargs):
+        return MicrobeData(world, **kwargs)
+
+    @classmethod
+    def get_config(cls):
+        return {
+            "start_population": {
+                "default": 10,
+                "label": "Start Population:",
+            },
+            "start_food": {
+                "default": 5000,
+                "label": "Start Food:",
+            },
+            "food_per_step": {
+                "default": 10,
+                "label": "New bacteria per step:",
+            },
+            "food_pattern": {
+                "label": "Food generation pattern:",
+                "type": "radio",
+                "options": [e.name for e in list(FoodPattern)],
+            },
+        }
+
+    @classmethod
+    def is_dead(cls, world):
+        return not len(world[MICROBES])
+
+    @classmethod
     def initialize(cls, world):
         cls.set_food_matrix(world)
         world[MICROBES] = []
         cls.generate_microbes(world.config["start_population"], world)
         world[FOOD] = []
         cls.generate_food(world.config["start_food"], world)
+
+    @classmethod
+    def set_food_matrix(cls, world):
+        min_cell, max_cell = cls.to_cell_corners(*world.corners)
+        food_matrix = [
+            [[] for i in range(min_cell.x, max_cell.x + 1)]
+            for k in range(min_cell.y, max_cell.y + 1)
+        ]
+        world.store[FOOD] = food_matrix
 
     @classmethod
     def generate_microbes(cls, n, world):
@@ -78,6 +116,7 @@ class MicrobeBehavior(BehaviorBase):
         cells_x = int(world.width / Microbe.CELL_SIZE)
         cells_y = int(world.height / Microbe.CELL_SIZE)
         count = math.ceil(n / 8)
+        # generate food around the edges
         for i in range(count):
             min_cell, max_cell = cls.to_cell_corners(*world.corners)
             r = random.randint(0, 3)
@@ -98,6 +137,7 @@ class MicrobeBehavior(BehaviorBase):
             food = Food(Point.random(min_cell, max_cell))
             cls.add_food(food, world)
 
+        # generate food in square in the center
         center_cell = cls.to_cell_position(world.center)
         offset = int(min(cells_x, cells_y) / 8)
         square_min_cell = center_cell.move_by(-offset)
@@ -113,50 +153,15 @@ class MicrobeBehavior(BehaviorBase):
         min_cell, max_cell = cls.to_cell_corners(*world.corners)
         spaces = 6
         for i in range(n):
-            k = random.randint(1, spaces - 1)
+            line_index = random.randint(1, spaces - 1)
             if i % 2 == 0:
-                x = cells_x / spaces * k
+                x = cells_x / spaces * line_index
                 y = random.randint(min_cell.y, max_cell.y)
             else:
                 x = random.randint(min_cell.x, max_cell.x)
-                y = cells_y / spaces * k
+                y = cells_y / spaces * line_index
             food = Food(Point(x, y).to_int())
             cls.add_food(food, world)
-
-    @classmethod
-    def set_food_matrix(cls, world):
-        min_cell, max_cell = cls.to_cell_corners(*world.corners)
-        food_matrix = [
-            [[] for i in range(min_cell.x, max_cell.x + 1)]
-            for k in range(min_cell.y, max_cell.y + 1)
-        ]
-        world.store[FOOD] = food_matrix
-
-    @classmethod
-    def get_config(cls):
-        return {
-            "start_population": {
-                "default": 10,
-                "label": "Start Population:",
-            },
-            "start_food": {
-                "default": 5000,
-                "label": "Start Food:",
-            },
-            "food_per_step": {
-                "default": 10,
-                "label": "New bacteria per step:",
-            },
-            "food_pattern": {
-                "label": "Food generation pattern:",
-                "type": "radio",
-                "options": [e.name for e in list(FoodPattern)],
-            },
-        }
-
-    @classmethod
-    def get_data_collector(cls, world, **kwargs):
-        return MicrobeData(world, **kwargs)
 
     @classmethod
     def apply(cls, world, speed):
@@ -182,10 +187,6 @@ class MicrobeBehavior(BehaviorBase):
         if duration < delay:
             time.sleep(delay - duration)
         return duration
-
-    @classmethod
-    def is_dead(cls, world):
-        return not len(world[MICROBES])
 
     @classmethod
     def try_eat(cls, microbe, world):

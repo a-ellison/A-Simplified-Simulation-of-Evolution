@@ -18,9 +18,9 @@ class Simulation:
     ):
         self.world_width = world_width
         self.world_height = world_height
-        self.behavior = behavior
         random.seed(seed)
         self.world = World(self.world_width, self.world_height, seed, config)
+        self.behavior = behavior
         self.behavior.initialize(self.world)
         self.data_collector = self.behavior.get_data_collector(
             self.world, **data_kwargs

@@ -77,6 +77,12 @@ class Microbe(Drawable):
         self.energy = energy
         self.age = 0
 
+    @classmethod
+    def to_actual_position(cls, cell_position):
+        x = cell_position.x * Microbe.CELL_SIZE + Microbe.CELL_SIZE / 2
+        y = cell_position.y * Microbe.CELL_SIZE + Microbe.CELL_SIZE / 2
+        return Point(x, y)
+
     def move(self, min_cell, max_cell):
         self.cell_position = self.direction.next_position(
             self.cell_position
@@ -85,12 +91,6 @@ class Microbe(Drawable):
         self.change_direction()
         self.energy -= Microbe.STEP_COST
         self.age += 1
-
-    @classmethod
-    def to_actual_position(cls, cell_position):
-        x = cell_position.x * Microbe.CELL_SIZE + Microbe.CELL_SIZE / 2
-        y = cell_position.y * Microbe.CELL_SIZE + Microbe.CELL_SIZE / 2
-        return Point(x, y)
 
     def update_position(self):
         self.position = Microbe.to_actual_position(self.cell_position)
@@ -141,9 +141,11 @@ class Microbe(Drawable):
     def mutate(self):
         half_energy = int(self.energy / 2)
         self.energy -= half_energy
-        index = random.randint(0, 7)
+        mutated_probability = random.randint(0, 7)
         r = random.random() - 0.5
         new_probabilities = self.probabilities.copy()
-        new_probabilities[index] = max(0, new_probabilities[index] + r)
+        new_probabilities[mutated_probability] = max(
+            0, new_probabilities[mutated_probability] + r
+        )
         new_probabilities = normalize_probabilities(new_probabilities)
         return Microbe(self.cell_position.copy(), new_probabilities, energy=half_energy)
